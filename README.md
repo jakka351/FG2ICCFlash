@@ -11,6 +11,9 @@ help to extend the overall life that we get out of these units across the board.
 
 ## Recore - Reimplemented from the engineering specification  
 
+## Firmware
+A collection of firmware files have been provided for use with the software in PHF, Binary and Hex format, use as you will. I believe the -CS firmware is the FPV spec firmware, with extra EEPROM space. 
+
 ## Brick risk  
 These Mark 2 FDIM's are extremely delicate and as such any use of this software may inexplicably brick the FDIM rendering it essentially useless. Use at your own risk, if you are
 unsure, contract the services of a suitably qualified <a href="https://barrascan.net/">Module Programmer</a> to program the module. You can thank SWSA Australia for this. 
