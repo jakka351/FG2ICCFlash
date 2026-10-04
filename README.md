@@ -3,6 +3,6 @@
 # FG2ICCFlash
 Flash firmware to a FG MK2 ICC via SAE J2534 PassThru
 
-</a href="https://fordforums.com.au"><img width="680" height="118" alt="FFAU" src="https://github.com/user-attachments/assets/c430872d-e4a5-4986-8bb8-50aa7657f5d9" /></a>  
+<a href="https://fordforums.com.au"><img width="680" height="118" alt="FFAU" src="https://github.com/user-attachments/assets/c430872d-e4a5-4986-8bb8-50aa7657f5d9" /></a>  
 
 Failing ICC Thread: https://fordforums.com.au/showthread.php?t=11479908&page=2   
