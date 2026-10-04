@@ -9,6 +9,9 @@
 This is full spec engineering tool for use with the Ford FGII Falcon's Front Display Interface Module, aka the ICC, the Interior Command Centre. It will perform diagnostics and reprogramming of the controller
 via the CANbus(yes the OBD port) using an SAE J2534 PassThru Device. The hope is that while currently these units are able to have the firmware updated via USB, providing an OBD option for people to try may
 help to extend the overall life that we get out of these units across the board. I am simply trying to increase the average longevity of these things. 
+
+<img width="854" height="746" alt="image" src="https://github.com/user-attachments/assets/aa896c8d-3e71-420d-9553-a9d23c901ce5" />
+
   
 ## Instructions for use
 ***This software has not yet been tested on an FDIM***   
