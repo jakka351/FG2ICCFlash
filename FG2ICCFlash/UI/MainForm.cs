@@ -19,6 +19,8 @@ namespace FG2ICCFlasher.UI
         private FirmwareEntry _selectedApp;
         private FirmwareEntry _selectedSbl;
         private FlashSequencer _seq;
+        private volatile bool _opBusy;   // a one-shot routine/diagnostic op is running on a worker thread
+        private volatile bool _opAbort;  // cooperative cancel for a one-shot op (e.g. on window close)
 
         public MainForm()
         {
@@ -32,6 +34,7 @@ namespace FG2ICCFlasher.UI
             comboBus.SelectedIndex = 0;
             foreach (var k in FordSecurity.KnownKeys) comboKey.Items.Add(k);
             comboKey.SelectedIndex = 0;
+            new ToolTip().SetToolTip(comboKey, "Pick a listed key, or type/paste a custom 5-byte hex key, e.g. 11 22 33 44 55");
             comboDfi.Items.AddRange(new object[] { "0x00", "0x01" });
             comboDfi.SelectedIndex = 0;
 
@@ -48,9 +51,9 @@ namespace FG2ICCFlasher.UI
             btnReadDtc.Click += (s, e) => RunOp("Read DTCs", false, 0, false, false, (g, o) => ModuleOps.ReadDtcs(g, o, Log));
             btnClearDtc.Click += (s, e) => RunOp("Clear DTCs", false, 0, false, false, (g, o) => ModuleOps.ClearDtcs(g, o, Log));
             btnSelfTest.Click += (s, e) => RunOp("On-Demand Self Test", false, 0, false, true,
-                (g, o) => ModuleOps.RunSelfTest(g, o, Log, ModuleOps.RoutineOnDemandSelfTest, "On-Demand Self Test"));
+                (g, o) => ModuleOps.RunSelfTest(g, o, Log, ModuleOps.RoutineOnDemandSelfTest, "On-Demand Self Test", () => _opAbort));
             btnEolSelfTest.Click += (s, e) => RunOp("EOL / Assembly Self Test", true, 0x87, true, true,
-                (g, o) => ModuleOps.RunSelfTest(g, o, Log, ModuleOps.RoutineAssemblySelfTest, "EOL / Assembly Self Test"));
+                (g, o) => ModuleOps.RunSelfTest(g, o, Log, ModuleOps.RoutineAssemblySelfTest, "EOL / Assembly Self Test", () => _opAbort));
             btnRecore.Click += (s, e) => StartRecore();
             btnRunCustom.Click += (s, e) => StartCustom();
 
@@ -72,8 +75,10 @@ namespace FG2ICCFlasher.UI
         {
             try
             {
+                // Copy into an independent Bitmap so the PictureBox does not depend on the (closing)
+                // manifest-resource stream for the lifetime of the Image.
                 using (var s = Assembly.GetExecutingAssembly().GetManifestResourceStream("FG2ICCFlasher.TesterPresentLogo.png"))
-                    if (s != null) logoPicture.Image = Image.FromStream(s);
+                    if (s != null) using (var tmp = Image.FromStream(s)) logoPicture.Image = new Bitmap(tmp);
             }
             catch { }
         }
@@ -152,7 +157,16 @@ namespace FG2ICCFlasher.UI
         private void ResyncSelection(ComboBox combo, bool isSbl)
         {
             var cur = isSbl ? _selectedSbl : _selectedApp;
-            if (cur != null) { int i = combo.Items.IndexOf(cur); if (i >= 0) combo.SelectedIndex = i; }
+            if (cur != null)
+            {
+                int i = combo.Items.IndexOf(cur);
+                combo.SelectedIndex = i >= 0 ? i : -1;
+            }
+            else
+            {
+                // Never leave the "Browse…" sentinel as the resting selection.
+                combo.SelectedIndex = -1;
+            }
         }
 
         private static string Describe(FirmwareEntry e)
@@ -195,7 +209,19 @@ namespace FG2ICCFlasher.UI
                 opt.TxId = ParseHexUint(txtTxId.Text, 0x7A6);
                 opt.RxId = ParseHexUint(txtRxId.Text, 0x7AE);
                 opt.ProgrammingSession = (byte)ParseHexUint(txtSession.Text, 0x85);
-                opt.KeyWord = ((FordSecurity.KeyWord)comboKey.SelectedItem).Bytes;
+                // Security key: a listed name (Janis/BradW) or a custom 5-byte hex key typed into the box.
+                var kw = comboKey.SelectedItem as FordSecurity.KeyWord;
+                string keyTxt = (comboKey.Text ?? "").Trim();
+                if (kw != null && string.Equals(keyTxt, kw.ToString(), StringComparison.Ordinal))
+                {
+                    opt.KeyWord = kw.Bytes;
+                }
+                else
+                {
+                    var kb = HexUtil.FromHex(keyTxt);
+                    if (kb.Length != 5) { error = "Security key must be a listed name or exactly 5 hex bytes (e.g. 42 72 61 64 57)."; return false; }
+                    opt.KeyWord = kb;
+                }
                 opt.DataFormatIdentifier = (byte)(comboDfi.SelectedIndex == 1 ? 0x01 : 0x00);
                 opt.DownloadSbl = chkSbl.Checked;
                 opt.EraseBeforeAppDownload = chkErase.Checked;
@@ -248,19 +274,23 @@ namespace FG2ICCFlasher.UI
 
         private void OnProgress(int pct, string phase)
         {
-            if (InvokeRequired) { BeginInvoke((Action)(() => OnProgress(pct, phase))); return; }
-            progress.Value = Math.Max(0, Math.Min(100, pct));
-            lblPhase.Text = phase;
+            UiInvoke(() =>
+            {
+                progress.Value = Math.Max(0, Math.Min(100, pct));
+                lblPhase.Text = phase;
+            });
         }
 
         private void OnFlashCompleted(bool ok, string message)
         {
-            if (InvokeRequired) { BeginInvoke((Action)(() => OnFlashCompleted(ok, message))); return; }
-            Log((ok ? "SUCCESS: " : "FAILED: ") + message);
-            lblPhase.Text = ok ? "Completed." : "Failed.";
-            SetBusy(false, flashing: true);
-            MessageBox.Show(this, message, ok ? "Completed" : "Failed", MessageBoxButtons.OK,
-                ok ? MessageBoxIcon.Information : MessageBoxIcon.Error);
+            UiInvoke(() =>
+            {
+                Log((ok ? "SUCCESS: " : "FAILED: ") + message);
+                lblPhase.Text = ok ? "Completed." : "Failed.";
+                SetBusy(false, flashing: true);
+                MessageBox.Show(this, message, ok ? "Completed" : "Failed", MessageBoxButtons.OK,
+                    ok ? MessageBoxIcon.Information : MessageBoxIcon.Error);
+            });
         }
 
         // ---------------- Routines / one-shot ops ----------------
@@ -277,7 +307,9 @@ namespace FG2ICCFlasher.UI
 
         private void StartCustom()
         {
-            var bytes = HexUtil.FromHex(txtCustom.Text);
+            byte[] bytes;
+            try { bytes = HexUtil.FromHex(txtCustom.Text); }
+            catch (Exception ex) { Warn("Invalid hex request: " + ex.Message); return; }
             if (bytes.Length == 0) { Warn("Enter a hex request, e.g. 31 02 00."); return; }
             bool unlock = chkCustomUnlock.Checked;
             RunOp("Custom request", unlock, 0x87, unlock, true, (g, o) =>
@@ -293,6 +325,8 @@ namespace FG2ICCFlasher.UI
             FlashOptions opt; string err;
             if (!TryBuildOptions(out opt, out err)) { Warn("Invalid options: " + err); return; }
 
+            _opBusy = true;
+            _opAbort = false;
             SetBusy(true, flashing: false);
             lblPhase.Text = name + "...";
             var t = new Thread(() =>
@@ -312,6 +346,7 @@ namespace FG2ICCFlasher.UI
                 finally
                 {
                     session?.Dispose();
+                    _opBusy = false;
                     UiInvoke(() => { SetBusy(false, flashing: false); lblPhase.Text = "Idle."; });
                 }
             }) { IsBackground = true };
@@ -319,6 +354,24 @@ namespace FG2ICCFlasher.UI
         }
 
         // ---------------- UI state ----------------
+
+        protected override void OnFormClosing(FormClosingEventArgs e)
+        {
+            bool flashing = _seq != null && _seq.IsRunning;
+            if (flashing || _opBusy)
+            {
+                string what = flashing ? "A flash is in progress." : "A module operation is in progress.";
+                var r = MessageBox.Show(this,
+                    what + "\r\nInterrupting it can leave the module in a partially-programmed state.\r\n\r\nClose anyway?",
+                    "Operation in progress", MessageBoxButtons.YesNo, MessageBoxIcon.Warning, MessageBoxDefaultButton.Button2);
+                if (r != DialogResult.Yes) { e.Cancel = true; base.OnFormClosing(e); return; }
+                _seq?.Abort();
+                _opAbort = true;
+                // Give the worker a bounded chance to stop at a safe point before we tear down.
+                for (int i = 0; i < 60 && ((_seq != null && _seq.IsRunning) || _opBusy); i++) Thread.Sleep(50);
+            }
+            base.OnFormClosing(e);
+        }
 
         private void SetBusy(bool busy, bool flashing)
         {
@@ -335,15 +388,27 @@ namespace FG2ICCFlasher.UI
 
         private void UiInvoke(Action a)
         {
-            if (InvokeRequired) BeginInvoke(a); else a();
+            try
+            {
+                if (IsDisposed || !IsHandleCreated) return;
+                if (InvokeRequired) BeginInvoke(a); else a();
+            }
+            catch (ObjectDisposedException) { }
+            catch (InvalidOperationException) { }
         }
 
         private void Warn(string msg) => MessageBox.Show(this, msg, "FG2ICCFlash", MessageBoxButtons.OK, MessageBoxIcon.Warning);
 
         private void Log(string message)
         {
-            if (txtLog.InvokeRequired) { txtLog.BeginInvoke((Action)(() => Log(message))); return; }
-            txtLog.AppendText((message ?? "").TrimEnd('\r', '\n') + "\r\n");
+            try
+            {
+                if (txtLog.IsDisposed || !txtLog.IsHandleCreated) return;
+                if (txtLog.InvokeRequired) { txtLog.BeginInvoke((Action)(() => Log(message))); return; }
+                txtLog.AppendText((message ?? "").TrimEnd('\r', '\n') + "\r\n");
+            }
+            catch (ObjectDisposedException) { }
+            catch (InvalidOperationException) { }
         }
     }
 }

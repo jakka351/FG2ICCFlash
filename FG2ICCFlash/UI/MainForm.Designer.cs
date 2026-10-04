@@ -85,14 +85,14 @@ namespace FG2ICCFlasher.UI
             this.components = new System.ComponentModel.Container();
 
             // ---------------- Header ----------------
-            this.headerPanel = new Panel { Location = new Point(0, 0), Size = new Size(852, 82), BackColor = Color.White, Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right };
-            this.titleLabel = new Label { Text = "FG2ICCFlash", Location = new Point(14, 12), AutoSize = true, Font = new Font("Segoe UI", 16f, FontStyle.Bold), ForeColor = Color.FromArgb(0x00, 0x24, 0x7D) };
-            this.subtitleLabel = new Label { Text = "Front Display Interface Module (0x7A6)  ·  CAN GDS v2003  ·  SAE J2534 PassThru", Location = new Point(16, 48), AutoSize = true, ForeColor = Color.DimGray };
-            this.logoPicture = new PictureBox { Location = new Point(648, 8), Size = new Size(194, 66), SizeMode = PictureBoxSizeMode.Zoom, Anchor = AnchorStyles.Top | AnchorStyles.Right, BackColor = Color.Transparent };
+            this.headerPanel = new Panel { Location = new Point(0, 0), Size = new Size(852, 110), BackColor = Color.White, Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right };
+            this.titleLabel = new Label { Text = "FG2ICCFlash", Location = new Point(14, 18), AutoSize = true, Font = new Font("Segoe UI", 16.5f, FontStyle.Bold), ForeColor = Color.FromArgb(0x00, 0x24, 0x7D) };
+            this.subtitleLabel = new Label { Text = "Front Display Interface Module (0x7A6)  ·  CAN GDS v2003  ·  SAE J2534 PassThru", Location = new Point(16, 56), AutoSize = true, ForeColor = Color.DimGray };
+            this.logoPicture = new PictureBox { Location = new Point(566, 8), Size = new Size(276, 96), SizeMode = PictureBoxSizeMode.Zoom, Anchor = AnchorStyles.Top | AnchorStyles.Right, BackColor = Color.Transparent };
             this.headerPanel.Controls.AddRange(new Control[] { titleLabel, subtitleLabel, logoPicture });
 
             // ---------------- Tabs ----------------
-            this.tabs = new TabControl { Location = new Point(12, 88), Size = new Size(828, 356), Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right };
+            this.tabs = new TabControl { Location = new Point(12, 116), Size = new Size(828, 356), Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right };
             this.tabFlash = new TabPage { Text = "Flash" };
             this.tabDiag = new TabPage { Text = "Diagnostics && Routines" };
             this.tabs.TabPages.AddRange(new TabPage[] { tabFlash, tabDiag });
@@ -123,7 +123,8 @@ namespace FG2ICCFlasher.UI
 
             // ---- Options group ----
             this.grpOpt = new GroupBox { Text = "Flash options", Location = new Point(8, 228), Size = new Size(804, 58) };
-            this.comboKey = new ComboBox { Location = new Point(90, 22), Size = new Size(118, 23), DropDownStyle = ComboBoxStyle.DropDownList };
+            // Editable so a custom 5-byte hex key (e.g. from an external key-finder) can be typed/pasted.
+            this.comboKey = new ComboBox { Location = new Point(90, 22), Size = new Size(118, 23), DropDownStyle = ComboBoxStyle.DropDown };
             this.txtSession = new TextBox { Text = "85", Location = new Point(268, 23), Size = new Size(38, 23) };
             this.comboDfi = new ComboBox { Location = new Point(344, 22), Size = new Size(60, 23), DropDownStyle = ComboBoxStyle.DropDownList };
             this.chkSbl = new CheckBox { Text = "Download SBL", Location = new Point(420, 24), AutoSize = true, Checked = true };
@@ -164,11 +165,11 @@ namespace FG2ICCFlasher.UI
             this.tabDiag.Controls.AddRange(new Control[] { grpIdent, grpRoutines });
 
             // ---------------- Progress + log ----------------
-            this.progress = new ProgressBar { Location = new Point(12, 452), Size = new Size(828, 18), Minimum = 0, Maximum = 100, Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right };
-            this.lblPhase = new Label { Text = "Idle.", Location = new Point(12, 474), AutoSize = true, Anchor = AnchorStyles.Top | AnchorStyles.Left };
+            this.progress = new ProgressBar { Location = new Point(12, 480), Size = new Size(828, 18), Minimum = 0, Maximum = 100, Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right };
+            this.lblPhase = new Label { Text = "Idle.", Location = new Point(12, 502), AutoSize = true, Anchor = AnchorStyles.Top | AnchorStyles.Left };
             this.txtLog = new TextBox
             {
-                Location = new Point(12, 496),
+                Location = new Point(12, 524),
                 Size = new Size(828, 190),
                 Multiline = true,
                 ReadOnly = true,
@@ -187,8 +188,8 @@ namespace FG2ICCFlasher.UI
 
             // ---------------- Form ----------------
             this.AutoScaleMode = AutoScaleMode.Font;
-            this.ClientSize = new Size(852, 716);
-            this.MinimumSize = new Size(868, 620);
+            this.ClientSize = new Size(852, 744);
+            this.MinimumSize = new Size(868, 648);
             this.Controls.AddRange(new Control[] { headerPanel, tabs, progress, lblPhase, txtLog, statusStrip });
             this.Text = "FG2ICCFlash | Tester Present Specialist Automotive Solutions";
             this.StartPosition = FormStartPosition.CenterScreen;

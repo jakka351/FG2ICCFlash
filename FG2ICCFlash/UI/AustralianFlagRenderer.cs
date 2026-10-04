@@ -23,23 +23,24 @@ namespace FG2ICCFlasher.UI
             int W = height * 2, H = height;
             // Supersample x4 for crisp small renders, then draw down into the target bitmap.
             int ss = 4;
-            var big = new Bitmap(W * ss, H * ss);
-            using (var g = Graphics.FromImage(big))
+            using (var big = new Bitmap(W * ss, H * ss))
             {
-                g.SmoothingMode = SmoothingMode.AntiAlias;
-                g.InterpolationMode = InterpolationMode.HighQualityBicubic;
-                g.PixelOffsetMode = PixelOffsetMode.HighQuality;
-                Draw(g, W * ss, H * ss);
+                using (var g = Graphics.FromImage(big))
+                {
+                    g.SmoothingMode = SmoothingMode.AntiAlias;
+                    g.InterpolationMode = InterpolationMode.HighQualityBicubic;
+                    g.PixelOffsetMode = PixelOffsetMode.HighQuality;
+                    Draw(g, W * ss, H * ss);
+                }
+                var outp = new Bitmap(W, H);
+                using (var g = Graphics.FromImage(outp))
+                {
+                    g.InterpolationMode = InterpolationMode.HighQualityBicubic;
+                    g.PixelOffsetMode = PixelOffsetMode.HighQuality;
+                    g.DrawImage(big, new Rectangle(0, 0, W, H));
+                }
+                return outp;
             }
-            var outp = new Bitmap(W, H);
-            using (var g = Graphics.FromImage(outp))
-            {
-                g.InterpolationMode = InterpolationMode.HighQualityBicubic;
-                g.PixelOffsetMode = PixelOffsetMode.HighQuality;
-                g.DrawImage(big, new Rectangle(0, 0, W, H));
-            }
-            big.Dispose();
-            return outp;
         }
 
         private static void Draw(Graphics g, int W, int H)
@@ -64,7 +65,7 @@ namespace FG2ICCFlasher.UI
 
         private static void DrawUnionJack(Graphics g, float w, float h)
         {
-            var clip = g.Clip;
+            var state = g.Save();
             g.SetClip(new RectangleF(0, 0, w, h));
             try
             {
@@ -96,13 +97,12 @@ namespace FG2ICCFlasher.UI
                     g.FillRectangle(red, 0, h / 2 - crossR / 2, w, crossR);
                 }
             }
-            finally { g.Clip = clip; }
+            finally { g.Restore(state); }
         }
 
         private static void DrawStar(Graphics g, float cx, float cy, float outerR, int points, float rotationDeg, Color color)
         {
             float innerR = outerR * (points == 5 ? 0.40f : 0.46f);
-            var path = new GraphicsPath();
             var pts = new PointF[points * 2];
             double start = rotationDeg * Math.PI / 180.0;
             double step = Math.PI / points;
@@ -112,9 +112,11 @@ namespace FG2ICCFlasher.UI
                 float r = (i % 2 == 0) ? outerR : innerR;
                 pts[i] = new PointF(cx + (float)(r * Math.Cos(a)), cy + (float)(r * Math.Sin(a)));
             }
-            path.AddPolygon(pts);
-            using (var b = new SolidBrush(color)) g.FillPath(b, path);
-            path.Dispose();
+            using (var path = new GraphicsPath())
+            {
+                path.AddPolygon(pts);
+                using (var b = new SolidBrush(color)) g.FillPath(b, path);
+            }
         }
     }
 }
