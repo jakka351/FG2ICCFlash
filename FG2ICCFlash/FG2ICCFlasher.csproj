@@ -7,12 +7,13 @@
     <ProjectGuid>{F2A6C1D4-3B7E-4C9A-9E21-7A6AE2534FDA}</ProjectGuid>
     <OutputType>WinExe</OutputType>
     <RootNamespace>FG2ICCFlasher</RootNamespace>
-    <AssemblyName>FG2ICCFlasher</AssemblyName>
+    <AssemblyName>FG2ICCFlash</AssemblyName>
     <TargetFrameworkVersion>v4.8.1</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <Deterministic>true</Deterministic>
     <ApplicationManifest>app.manifest</ApplicationManifest>
+    <ApplicationIcon>FG2ICCFlasher.ico</ApplicationIcon>
   </PropertyGroup>
   <!-- x86 is MANDATORY: the vendor J2534 PassThru DLL is 32-bit and is loaded via
        kernel32 LoadLibrary; a 64-bit host process cannot load it. -->
@@ -64,7 +65,11 @@
     <Compile Include="Core\J2534CanChannel.cs" />
     <Compile Include="Core\SimulatedCanChannel.cs" />
     <Compile Include="Core\GdsClient.cs" />
+    <Compile Include="Core\GdsSession.cs" />
+    <Compile Include="Core\ModuleOps.cs" />
+    <Compile Include="Core\FirmwareCatalog.cs" />
     <Compile Include="Core\FlashSequencer.cs" />
+    <Compile Include="UI\AustralianFlagRenderer.cs" />
     <Compile Include="UI\MainForm.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -75,6 +80,18 @@
   <ItemGroup>
     <None Include="app.config" />
     <None Include="app.manifest" />
+  </ItemGroup>
+  <ItemGroup>
+    <!-- Embedded firmware: the six FDM application variants + the secondary bootloader.
+         Explicit LogicalName keeps resource ids stable regardless of MSBuild name mangling. -->
+    <EmbeddedResource Include="Firmware\AR79-14D017-AN.PHF"><LogicalName>FG2ICCFlasher.Firmware.AR79-14D017-AN.PHF</LogicalName></EmbeddedResource>
+    <EmbeddedResource Include="Firmware\AR79-14D017-AS.PHF"><LogicalName>FG2ICCFlasher.Firmware.AR79-14D017-AS.PHF</LogicalName></EmbeddedResource>
+    <EmbeddedResource Include="Firmware\AR79-14D017-BN.PHF"><LogicalName>FG2ICCFlasher.Firmware.AR79-14D017-BN.PHF</LogicalName></EmbeddedResource>
+    <EmbeddedResource Include="Firmware\AR79-14D017-BS.PHF"><LogicalName>FG2ICCFlasher.Firmware.AR79-14D017-BS.PHF</LogicalName></EmbeddedResource>
+    <EmbeddedResource Include="Firmware\AR79-14D017-CN.PHF"><LogicalName>FG2ICCFlasher.Firmware.AR79-14D017-CN.PHF</LogicalName></EmbeddedResource>
+    <EmbeddedResource Include="Firmware\AR79-14D017-CS.PHF"><LogicalName>FG2ICCFlasher.Firmware.AR79-14D017-CS.PHF</LogicalName></EmbeddedResource>
+    <EmbeddedResource Include="Firmware\AR79-14D019-AA_SBL.PHF"><LogicalName>FG2ICCFlasher.Firmware.AR79-14D019-AA_SBL.PHF</LogicalName></EmbeddedResource>
+    <EmbeddedResource Include="TesterPresentLogo.png"><LogicalName>FG2ICCFlasher.TesterPresentLogo.png</LogicalName></EmbeddedResource>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
