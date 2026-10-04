@@ -55,6 +55,11 @@ namespace FG2ICCFlasher.Core
             {
                 if (_app == null) { Done(false, "No application firmware loaded."); return; }
 
+                // Pre-flash integrity validation (checksum + EOF already enforced at parse time).
+                string vErr;
+                if (!_app.Validate(out vErr)) { Done(false, "Application firmware failed validation: " + vErr); return; }
+                if (_opt.DownloadSbl && _sbl != null && !_sbl.Validate(out vErr)) { Done(false, "Flash driver failed validation: " + vErr); return; }
+
                 L("=====================================================");
                 L("LIVE FLASH — the Front Display Interface Module (0x7A6) will be reprogrammed.");
                 L($"Target: TX 0x{_opt.TxId:X3} / RX 0x{_opt.RxId:X3} on {_opt.Bus}.");
@@ -79,7 +84,18 @@ namespace FG2ICCFlasher.Core
                 {
                     L("[SBL] Downloading flash driver to RAM...");
                     if (!DownloadImage(gds, _sbl, 15, 30, "Flash driver")) { Done(false, "Flash driver download failed (see log)."); return; }
-                    L("[SBL] Flash driver resident (module executes it on transfer-exit).");
+                    if (_opt.SblActivationRoutine != null && _opt.SblActivationRoutine.Length > 0)
+                    {
+                        L($"[SBL] Activating flash driver via $31 {HexUtil.ToHex(_opt.SblActivationRoutine)}");
+                        var act = gds.StartRoutine(_opt.SblActivationRoutine, _opt.RoutineTimeoutMs);
+                        if (!act.Positive) { Done(false, "Flash driver activation routine rejected: " + act.Describe()); return; }
+                    }
+                    else
+                    {
+                        // A known-good MK1 FDIM flash trace confirms the module auto-executes the flash
+                        // driver on transfer-exit ($37) — no explicit activation routine is sent.
+                        L("[SBL] Flash driver resident; module auto-executes it on transfer-exit ($37).");
+                    }
                     if (Aborted()) return;
                 }
 
@@ -87,8 +103,9 @@ namespace FG2ICCFlasher.Core
                 if (_opt.EraseBeforeAppDownload)
                 {
                     P(32, "Erasing flash");
-                    L("[$B1 00 B2] Flash Memory Erase (can take several seconds; $78 pending expected)...");
-                    var er = gds.FlashErase(_opt.EraseTimeoutMs);
+                    byte eraseSectors = (byte)_app.FlashEraseSectors;
+                    L($"[$B1 00 B2 {eraseSectors:X2}] Flash Memory Erase (can take several seconds; $78 pending expected)...");
+                    var er = gds.FlashErase(eraseSectors, _opt.EraseTimeoutMs);
                     if (!er.Positive) { Done(false, "Flash erase failed: " + er.Describe()); return; }
                     L("[$B1 00 B2] Erase complete.");
                     if (Aborted()) return;
@@ -129,46 +146,56 @@ namespace FG2ICCFlasher.Core
             }
         }
 
-        /// <summary>Download one image via $34/$36.../$37, mapping progress into [pctFrom, pctTo].</summary>
+        /// <summary>
+        /// Download one image, one $34/$36.../$37 cycle PER CONTIGUOUS SEGMENT (confirmed against a
+        /// known-good MK1 FDIM flash trace, which issues a separate RequestDownload for each memory
+        /// segment at its own address — never one flattened span). Progress maps into [pctFrom, pctTo].
+        /// </summary>
         private bool DownloadImage(GdsClient gds, PhfFile phf, int pctFrom, int pctTo, string phase)
         {
-            var flat = phf.Image.Flatten(_opt.FillByte);
-            uint addr = phf.StartAddress;
-            uint size = (uint)flat.Length;
-            if (size == 0) { L("  Image is empty — nothing to download."); return false; }
+            var segments = phf.Image.Segments;   // sorted + coalesced (adjacent runs already merged)
+            if (segments.Count == 0) { L("  Image is empty — nothing to download."); return false; }
 
-            L($"[$34] RequestDownload addr=0x{addr:X8} size=0x{size:X6} ({size} bytes) DFI=0x{_opt.DataFormatIdentifier:X2}");
-            UdsResult rd;
-            int maxBlk = gds.RequestDownload(addr, size, _opt.DataFormatIdentifier, _opt.P2TimeoutMs, out rd);
-            if (!rd.Positive) { L("  RequestDownload rejected: " + rd.Describe()); return false; }
+            int totalBytes = phf.Image.TotalDataBytes;
+            int doneBytes = 0;
+            L($"  {segments.Count} contiguous segment(s), {totalBytes} data bytes total.");
 
-            int blockData = _opt.BlockDataSizeOverride > 0
-                ? _opt.BlockDataSizeOverride
-                : (maxBlk > 1 ? maxBlk - 1 : 255);          // reserve 1 byte for the $36 SID
-            if (blockData < 1) blockData = 1;
-            if (blockData > 4093) blockData = 4093;          // GDS TransferData max 4094 incl. SID
-            L($"[$34] maxNumberOfBlockLength=0x{maxBlk:X4}; using {blockData} data bytes/block.");
-
-            int offset = 0, blockNo = 0;
-            while (offset < flat.Length)
+            foreach (var seg in segments)
             {
                 if (_abort) { L("  Aborted by user."); return false; }
-                int n = Math.Min(blockData, flat.Length - offset);
-                var block = new byte[n];
-                Buffer.BlockCopy(flat, offset, block, 0, n);
-                var tr = gds.TransferData(block, _opt.TransferTimeoutMs);
-                if (!tr.Positive) { L($"  TransferData block {blockNo} (offset 0x{offset:X6}) failed: " + tr.Describe()); return false; }
+                uint addr = seg.Address;
+                uint size = (uint)seg.Length;
 
-                offset += n; blockNo++;
-                int pct = pctFrom + (int)((long)(pctTo - pctFrom) * offset / flat.Length);
-                P(pct, $"{phase} {offset}/{flat.Length} bytes");
+                L($"[$34] RequestDownload addr=0x{addr:X8} size=0x{size:X6} ({size} bytes) DFI=0x{_opt.DataFormatIdentifier:X2}");
+                UdsResult rd;
+                int maxBlk = gds.RequestDownload(addr, size, _opt.DataFormatIdentifier, _opt.P2TimeoutMs, out rd);
+                if (!rd.Positive) { L("  RequestDownload rejected: " + rd.Describe()); return false; }
+
+                int blockData = _opt.BlockDataSizeOverride > 0
+                    ? _opt.BlockDataSizeOverride
+                    : (maxBlk > 1 ? maxBlk - 1 : 255);          // reserve 1 byte for the $36 SID
+                if (blockData < 1) blockData = 1;
+                if (blockData > 4093) blockData = 4093;          // GDS TransferData max 4094 incl. SID
+
+                int offset = 0, blockNo = 0;
+                while (offset < seg.Data.Length)
+                {
+                    if (_abort) { L("  Aborted by user."); return false; }
+                    int n = Math.Min(blockData, seg.Data.Length - offset);
+                    var block = new byte[n];
+                    Buffer.BlockCopy(seg.Data, offset, block, 0, n);
+                    var tr = gds.TransferData(block, _opt.TransferTimeoutMs);
+                    if (!tr.Positive) { L($"  TransferData block {blockNo} at 0x{addr + (uint)offset:X8} failed: " + tr.Describe()); return false; }
+
+                    offset += n; blockNo++; doneBytes += n;
+                    int pct = pctFrom + (int)((long)(pctTo - pctFrom) * doneBytes / Math.Max(1, totalBytes));
+                    P(pct, $"{phase} {doneBytes}/{totalBytes} bytes");
+                }
+
+                var ex = gds.RequestTransferExit(_opt.RoutineTimeoutMs);
+                if (!ex.Positive) { L("  RequestTransferExit rejected: " + ex.Describe()); return false; }
+                L($"[$37] segment 0x{addr:X8} done — {seg.Data.Length} bytes in {blockNo} block(s), maxBlk=0x{maxBlk:X4}.");
             }
-            L($"[$36] {blockNo} blocks transferred ({flat.Length} bytes).");
-
-            L("[$37] RequestTransferExit");
-            var ex = gds.RequestTransferExit(_opt.RoutineTimeoutMs);
-            if (!ex.Positive) { L("  RequestTransferExit rejected: " + ex.Describe()); return false; }
-            L("[$37] Transfer exit accepted.");
             return true;
         }
 

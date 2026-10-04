@@ -74,7 +74,8 @@ namespace FG2ICCFlasher.Core
 
             if (startTesterPresent)
             {
-                Channel.StartTesterPresent(_opt.TesterPresentIntervalMs);
+                if (!Channel.StartTesterPresent(_opt.TesterPresentIntervalMs))
+                { error = "Could not start the tester-present keep-alive — aborting before any erase/program (the session would time out)."; return false; }
                 _tpStarted = true;
             }
             return true;

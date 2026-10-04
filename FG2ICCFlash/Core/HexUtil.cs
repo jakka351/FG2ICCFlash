@@ -76,23 +76,28 @@ namespace FG2ICCFlasher.Core
             return sb.ToString();
         }
 
-        /// <summary>Parse a hex string (optionally space / 0x separated) into bytes.</summary>
+        /// <summary>
+        /// Parse a hex string into bytes. Tokens are split on whitespace/commas; a leading "0x"/"0X"
+        /// on a token is stripped (so "0x31 0x02 0x00" parses as 31 02 00, not 00 31 00 ...). A token
+        /// with an odd number of hex digits is left-padded with a leading zero.
+        /// </summary>
         public static byte[] FromHex(string s)
         {
             if (string.IsNullOrWhiteSpace(s)) return new byte[0];
-            var cleaned = new StringBuilder(s.Length);
-            for (int i = 0; i < s.Length; i++)
+            var outBytes = new List<byte>();
+            foreach (var tokenRaw in s.Split(new[] { ' ', '\t', '\r', '\n', ',', ';' }, StringSplitOptions.RemoveEmptyEntries))
             {
-                char c = s[i];
-                if (Uri.IsHexDigit(c)) cleaned.Append(c);
-                // skip spaces, commas, 0x prefixes, punctuation
+                string tok = tokenRaw;
+                if (tok.StartsWith("0x", StringComparison.OrdinalIgnoreCase)) tok = tok.Substring(2);
+                var digits = new StringBuilder(tok.Length);
+                foreach (var c in tok) if (Uri.IsHexDigit(c)) digits.Append(c);
+                if (digits.Length == 0) continue;
+                string hex = digits.ToString();
+                if ((hex.Length & 1) == 1) hex = "0" + hex;
+                for (int i = 0; i < hex.Length; i += 2)
+                    outBytes.Add(byte.Parse(hex.Substring(i, 2), NumberStyles.HexNumber, CultureInfo.InvariantCulture));
             }
-            string hex = cleaned.ToString();
-            if ((hex.Length & 1) == 1) hex = "0" + hex; // pad odd nibble count
-            var outp = new byte[hex.Length / 2];
-            for (int i = 0; i < outp.Length; i++)
-                outp[i] = byte.Parse(hex.Substring(i * 2, 2), NumberStyles.HexNumber, CultureInfo.InvariantCulture);
-            return outp;
+            return outBytes.ToArray();
         }
 
         /// <summary>True if the string is exactly two hex digits.</summary>
@@ -132,9 +137,11 @@ namespace FG2ICCFlasher.Core
             return new byte[] { (byte)(v >> 24), (byte)(v >> 16), (byte)(v >> 8), (byte)v };
         }
 
-        /// <summary>Split the low 24 bits of a value into 3 big-endian bytes (MSB first).</summary>
+        /// <summary>Split a value into 3 big-endian bytes (MSB first). Throws if it exceeds 24 bits,
+        /// so an oversized download size can never be silently truncated into the $34 size field.</summary>
         public static byte[] BE24(uint v)
         {
+            if (v > 0xFFFFFF) throw new ArgumentOutOfRangeException(nameof(v), $"value 0x{v:X} exceeds 24 bits");
             return new byte[] { (byte)(v >> 16), (byte)(v >> 8), (byte)v };
         }
     }

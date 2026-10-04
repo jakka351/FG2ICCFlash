@@ -110,7 +110,7 @@ namespace FG2ICCFlasher.Core
             }
         }
 
-        public void StartTesterPresent(uint intervalMs) => Log?.Invoke($"[SIM] TesterPresent every {intervalMs} ms.");
+        public bool StartTesterPresent(uint intervalMs) { Log?.Invoke($"[SIM] TesterPresent every {intervalMs} ms."); return true; }
         public void StopTesterPresent() { }
         public double ReadBatteryVoltage() => 13.8; // simulate a healthy battery
         public void Close() { _open = false; Log?.Invoke("[SIM] Simulated channel closed."); }

@@ -89,7 +89,8 @@ namespace FG2ICCFlasher.Core
         /// <summary>Read a further response frame without sending (used for $78 pending loops).</summary>
         byte[] ReadNext(int timeoutMs);
 
-        void StartTesterPresent(uint intervalMs);
+        /// <summary>Start the periodic tester-present keep-alive. Returns false if it could not be started.</summary>
+        bool StartTesterPresent(uint intervalMs);
         void StopTesterPresent();
 
         /// <summary>Battery/ignition voltage in volts, or 0 if unavailable.</summary>

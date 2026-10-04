@@ -30,6 +30,11 @@ namespace FG2ICCFlasher.Core
         private int _filterId;
         private int _tpMsgId = -1;
         private bool _open;
+        // Protocol for the channel, filters AND every TX message: ISO15765 for HS-CAN,
+        // ISO15765_PS for MS-CAN (pin-select). The message ProtocolID routes the frame to the
+        // physical bus — a plain-ISO15765 message goes out on HS-CAN, so TX messages for the
+        // MS-CAN FDIM MUST carry ISO15765_PS or they fire on the wrong bus. Everything therefore
+        // uses _protocol.
         private ProtocolID _protocol = ProtocolID.ISO15765;
 
         public bool IsOpen => _open;
@@ -118,7 +123,10 @@ namespace FG2ICCFlasher.Core
                 var txMsg = new PassThruMsg(_protocol, TxFlag.ISO15765_FRAME_PAD, frame);
                 IntPtr txPtr = txMsg.ToIntPtr();
                 J2534Err err;
-                try { err = _port.Functions.PassThruWriteMsgs((int)_channelId, txPtr, ref num, 100); }
+                // Write timeout 0 = queue and return immediately (proven pattern); the adapter does
+                // the ISO-TP segmentation and the subsequent ReadLoop bounds the overall wait. A
+                // non-zero blocking-write timeout would otherwise cap the whole multi-frame transmit.
+                try { err = _port.Functions.PassThruWriteMsgs((int)_channelId, txPtr, ref num, 0); }
                 finally { Marshal.FreeHGlobal(txPtr); }
                 if (err != J2534Err.STATUS_NOERROR) { L("PassThruWriteMsgs error: " + err); return null; }
 
@@ -166,11 +174,11 @@ namespace FG2ICCFlasher.Core
             return null;
         }
 
-        public void StartTesterPresent(uint intervalMs)
+        public bool StartTesterPresent(uint intervalMs)
         {
             lock (_io)
             {
-                if (!_open) return;
+                if (!_open) return false;
                 StopTesterPresentNoLock();
                 // TesterPresent, suppress positive response: 3E 80
                 var frame = HexUtil.Concat(HexUtil.BE32(TxId), new byte[] { 0x3E, 0x80 });
@@ -180,8 +188,9 @@ namespace FG2ICCFlasher.Core
                 {
                     int id = 0;
                     var err = _port.Functions.PassThruStartPeriodicMsg((int)_channelId, ptr, ref id, (int)intervalMs);
-                    if (err == J2534Err.STATUS_NOERROR) { _tpMsgId = id; L($"TesterPresent started ({intervalMs} ms)."); }
-                    else L("Warning: could not start periodic TesterPresent: " + err);
+                    if (err == J2534Err.STATUS_NOERROR) { _tpMsgId = id; L($"TesterPresent started ({intervalMs} ms)."); return true; }
+                    L("ERROR: could not start periodic TesterPresent: " + err);
+                    return false;
                 }
                 finally { Marshal.FreeHGlobal(ptr); }
             }

@@ -205,6 +205,25 @@ namespace FG2ICCFlasher.Core
             return (ushort)(sum & 0xFFFF);
         }
 
+        /// <summary>
+        /// Pre-flash integrity check: image non-empty, addressed to this module (0x7A6), and the
+        /// 16-bit additive checksum over the payload matches the header FILE CHECKSUM. (This additive
+        /// algorithm was verified to match the header on every supplied FDM file.)
+        /// </summary>
+        public bool Validate(out string error)
+        {
+            error = null;
+            if (Image == null || Image.IsEmpty) { error = "firmware image is empty."; return false; }
+            if (ModuleId != 0 && ModuleId != 0x7A6) { error = $"MODULE ID is 0x{ModuleId:X3}, not 0x7A6 (FDIM)."; return false; }
+            if (FileChecksum != 0)
+            {
+                ushort calc = ComputeAdditiveChecksum16();
+                if (calc != (ushort)FileChecksum)
+                { error = $"checksum mismatch: header 0x{FileChecksum:X4} vs computed 0x{calc:X4} — file may be corrupt."; return false; }
+            }
+            return true;
+        }
+
         public string DescribeHeader()
         {
             var sb = new StringBuilder();

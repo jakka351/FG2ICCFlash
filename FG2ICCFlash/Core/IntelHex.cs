@@ -75,6 +75,7 @@ namespace FG2ICCFlasher.Core
             if (text == null) throw new ArgumentNullException(nameof(text));
             var image = new MemoryImage();
             uint baseAddress = 0;
+            bool sawEof = false;
             var lines = text.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
             foreach (var raw in lines)
             {
@@ -88,8 +89,9 @@ namespace FG2ICCFlasher.Core
                 for (int i = 0; i < n; i++)
                     rec[i] = (byte)((HexUtil.HexDigit(line[1 + i * 2]) << 4) | HexUtil.HexDigit(line[2 + i * 2]));
 
-                if (ProcessRecord(rec, 0, image, ref baseAddress)) break; // EOF
+                if (ProcessRecord(rec, 0, image, ref baseAddress)) { sawEof = true; break; } // EOF
             }
+            if (!sawEof) throw new FormatException("Intel HEX ended without an EOF (type 01) record — file is truncated.");
             image.Coalesce();
             return image;
         }
@@ -103,6 +105,7 @@ namespace FG2ICCFlasher.Core
             if (data == null) throw new ArgumentNullException(nameof(data));
             var image = new MemoryImage();
             uint baseAddress = 0;
+            bool sawEof = false;
             int p = offset;
             while (p < data.Length)
             {
@@ -118,8 +121,9 @@ namespace FG2ICCFlasher.Core
                 Buffer.BlockCopy(data, p + 1, rec, 0, rec.Length);
                 bool eof = ProcessRecord(rec, 0, image, ref baseAddress);
                 p += recLen;
-                if (eof) break;
+                if (eof) { sawEof = true; break; }
             }
+            if (!sawEof) throw new FormatException("PHF payload ended without an Intel HEX EOF (type 01) record — firmware is truncated or corrupt.");
             image.Coalesce();
             return image;
         }

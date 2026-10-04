@@ -5,19 +5,22 @@ namespace FG2ICCFlasher.Core
     /// <summary>Result of a single GDS/UDS request.</summary>
     public sealed class UdsResult
     {
-        public bool Positive;      // true = positive response received
+        public bool Positive;      // true = positive response received (SID == request + 0x40)
         public bool TimedOut;      // true = no response / read error
-        public byte NrcCode;       // negative response code when !Positive && !TimedOut
+        public bool Mismatch;      // true = a frame arrived but it was for a different service
+        public byte NrcCode;       // negative response code when it is a $7F for this service
         public byte[] Data;        // full response payload (SID + params)
 
         public static UdsResult Pos(byte[] data) => new UdsResult { Positive = true, Data = data };
         public static UdsResult Neg(byte nrc, byte[] data) => new UdsResult { Positive = false, NrcCode = nrc, Data = data };
         public static UdsResult Timeout() => new UdsResult { Positive = false, TimedOut = true };
+        public static UdsResult Unexpected(byte[] data) => new UdsResult { Positive = false, Mismatch = true, Data = data };
 
         public string Describe()
         {
             if (Positive) return "positive (" + HexUtil.ToHex(Data) + ")";
             if (TimedOut) return "no response / timeout";
+            if (Mismatch) return "unexpected/mismatched response (" + HexUtil.ToHex(Data) + ")";
             return "negative " + Nrc.Describe(NrcCode);
         }
     }
@@ -36,35 +39,53 @@ namespace FG2ICCFlasher.Core
 
         public GdsClient(ICanChannel channel) { _ch = channel; }
 
-        /// <summary>Send a request and resolve the response, following $78 pending until final.</summary>
+        /// <summary>
+        /// Send a request and resolve the response. Follows $78 "response pending" until a final
+        /// answer, and only accepts a frame whose service id matches this request:
+        ///   positive  = SID == requestSID + 0x40,
+        ///   negative  = $7F followed by this request's SID,
+        /// A frame for a different service (a stale/duplicated/desynced reply) is skipped and the
+        /// read retried a bounded number of times — it is NEVER reported as a positive response.
+        /// </summary>
         public UdsResult Request(byte[] uds, int timeoutMs)
         {
             byte reqSid = uds.Length > 0 ? uds[0] : (byte)0;
+            byte expectPos = (byte)(reqSid + 0x40);
             byte[] rsp = _ch.SendReceive(uds, timeoutMs);
-            int pendingGuard = 0;
+            int pendingGuard = 0, strayGuard = 0;
+            const int MaxPending = 2000;   // $78 can repeat for a long erase
+            const int MaxStray = 8;        // tolerate a few stale frames, then give up
+
             while (true)
             {
                 if (rsp == null || rsp.Length == 0) return UdsResult.Timeout();
 
                 if (rsp[0] == 0x7F)
                 {
+                    byte svc = rsp.Length >= 2 ? rsp[1] : (byte)0x00;
                     byte nrc = rsp.Length >= 3 ? rsp[2] : (byte)0x00;
-                    if (Nrc.IsResponsePending(nrc))
+
+                    if (svc == reqSid && Nrc.IsResponsePending(nrc))
                     {
-                        if (++pendingGuard > 2000) return UdsResult.Timeout(); // safety bound
+                        if (++pendingGuard > MaxPending) return UdsResult.Timeout();
                         L($"  ... $78 response pending (service ${reqSid:X2}), waiting...");
                         rsp = _ch.ReadNext(timeoutMs);
                         continue;
                     }
-                    return UdsResult.Neg(nrc, rsp);
+                    if (svc == reqSid) return UdsResult.Neg(nrc, rsp);
+
+                    // $7F for a different service -> stale frame, skip and retry.
+                    if (++strayGuard > MaxStray) return UdsResult.Unexpected(rsp);
+                    rsp = _ch.ReadNext(timeoutMs);
+                    continue;
                 }
 
-                // Positive response SID = request SID + 0x40.
-                if (reqSid != 0 && rsp[0] == (byte)(reqSid + 0x40))
-                    return UdsResult.Pos(rsp);
+                if (reqSid != 0 && rsp[0] == expectPos) return UdsResult.Pos(rsp);
 
-                // Unexpected SID: accept if it looks positive, else report raw.
-                return UdsResult.Pos(rsp);
+                // A frame for the wrong service: do NOT accept it as positive. Skip and retry.
+                L($"  (ignoring unexpected frame {HexUtil.ToHex(rsp, 0, Math.Min(4, rsp.Length))} while awaiting ${expectPos:X2})");
+                if (++strayGuard > MaxStray) return UdsResult.Unexpected(rsp);
+                rsp = _ch.ReadNext(timeoutMs);
             }
         }
 
@@ -104,9 +125,14 @@ namespace FG2ICCFlasher.Core
         public UdsResult ClearDtcs(ushort groupOfDtc, int timeoutMs)
             => Request(new byte[] { 0x14, (byte)(groupOfDtc >> 8), (byte)groupOfDtc }, timeoutMs);
 
-        /// <summary>Flash Memory Erase: diagnosticCommand $B1 with commandCommonIdentifier $00B2.</summary>
-        public UdsResult FlashErase(int timeoutMs)
-            => Request(new byte[] { 0xB1, 0x00, 0xB2 }, timeoutMs);
+        /// <summary>
+        /// Flash Memory Erase: diagnosticCommand $B1, commandCommonIdentifier $00B2, plus the
+        /// erase-sectors parameter byte. A known-good MK1 FDIM flash trace shows the request is
+        /// "B1 00 B2 00" (the trailing byte = the PHF FLASH ERASE SECTORS value), so the parameter
+        /// is mandatory — omitting it risks an incorrect-length rejection.
+        /// </summary>
+        public UdsResult FlashErase(byte eraseSectors, int timeoutMs)
+            => Request(new byte[] { 0xB1, 0x00, 0xB2, eraseSectors }, timeoutMs);
 
         /// <summary>
         /// SecurityAccess seed/key exchange. Returns true on grant (or if already unlocked).

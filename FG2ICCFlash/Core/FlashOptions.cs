@@ -32,6 +32,11 @@ namespace FG2ICCFlasher.Core
 
         // ---- Sequence toggles ----
         public bool DownloadSbl = true;             // download the flash driver (SBL) to RAM first
+        /// <summary>Optional $31 StartRoutine (routine id + args) to activate the RAM-resident flash
+        /// driver after its transfer-exit. null = rely on the module auto-executing on $37. The exact
+        /// activation requirement/id is module-specific (FDIM SSDS) and unconfirmed in the supplied
+        /// material, so this is left null by default and surfaced as a warning.</summary>
+        public byte[] SblActivationRoutine = null;
         public bool EraseBeforeAppDownload = true;  // $B1 00 B2 Flash Memory Erase
         public bool VerifyAfter = true;             // log/verify checksum after programming
         public bool EcuResetAfter = true;           // $11 01 at the end
