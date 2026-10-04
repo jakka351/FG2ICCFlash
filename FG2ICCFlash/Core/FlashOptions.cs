@@ -44,7 +44,6 @@ namespace FG2ICCFlasher.Core
         public int RoutineTimeoutMs = 20000;        // routines / checksum
 
         // ---- Safety ----
-        public bool DryRun = true;                  // use the simulator; no hardware, nothing written
         public double MinBatteryVolts = 12.0;       // warn below this (0 = unknown/unsupported)
 
         public FlashOptions Clone() => (FlashOptions)MemberwiseClone();

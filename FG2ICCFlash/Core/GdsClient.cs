@@ -7,18 +7,18 @@ namespace FG2ICCFlasher.Core
     {
         public bool Positive;      // true = positive response received
         public bool TimedOut;      // true = no response / read error
-        public byte Nrc;           // negative response code when !Positive && !TimedOut
+        public byte NrcCode;       // negative response code when !Positive && !TimedOut
         public byte[] Data;        // full response payload (SID + params)
 
         public static UdsResult Pos(byte[] data) => new UdsResult { Positive = true, Data = data };
-        public static UdsResult Neg(byte nrc, byte[] data) => new UdsResult { Positive = false, Nrc = nrc, Data = data };
+        public static UdsResult Neg(byte nrc, byte[] data) => new UdsResult { Positive = false, NrcCode = nrc, Data = data };
         public static UdsResult Timeout() => new UdsResult { Positive = false, TimedOut = true };
 
         public string Describe()
         {
             if (Positive) return "positive (" + HexUtil.ToHex(Data) + ")";
             if (TimedOut) return "no response / timeout";
-            return "negative " + Nrc.Describe(Nrc);
+            return "negative " + Nrc.Describe(NrcCode);
         }
     }
 
@@ -87,6 +87,22 @@ namespace FG2ICCFlasher.Core
 
         public UdsResult StartRoutine(byte[] routineAndArgs, int timeoutMs)
             => Request(HexUtil.Concat(new byte[] { 0x31 }, routineAndArgs ?? new byte[0]), timeoutMs);
+
+        /// <summary>stopRoutineByLocalIdentifier ($32).</summary>
+        public UdsResult StopRoutine(byte[] routineAndArgs, int timeoutMs)
+            => Request(HexUtil.Concat(new byte[] { 0x32 }, routineAndArgs ?? new byte[0]), timeoutMs);
+
+        /// <summary>requestRoutineResultsByLocalIdentifier ($33) -> $73 [routineId][status][results...].</summary>
+        public UdsResult RequestRoutineResults(byte[] routineId, int timeoutMs)
+            => Request(HexUtil.Concat(new byte[] { 0x33 }, routineId ?? new byte[0]), timeoutMs);
+
+        /// <summary>readDiagnosticTroubleCodesByStatus ($18). Default status 0x00, group 0xFF00 (all).</summary>
+        public UdsResult ReadDtcsByStatus(byte statusOfDtc, ushort groupOfDtc, int timeoutMs)
+            => Request(new byte[] { 0x18, statusOfDtc, (byte)(groupOfDtc >> 8), (byte)groupOfDtc }, timeoutMs);
+
+        /// <summary>clearDiagnosticInformation ($14). Group 0xFF00 = all groups.</summary>
+        public UdsResult ClearDtcs(ushort groupOfDtc, int timeoutMs)
+            => Request(new byte[] { 0x14, (byte)(groupOfDtc >> 8), (byte)groupOfDtc }, timeoutMs);
 
         /// <summary>Flash Memory Erase: diagnosticCommand $B1 with commandCommonIdentifier $00B2.</summary>
         public UdsResult FlashErase(int timeoutMs)

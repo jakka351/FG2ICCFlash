@@ -9,15 +9,16 @@ namespace FG2ICCFlasher.Core
     /// secondary bootloader/flash driver to RAM ($34/$36/$37) -> erase flash ($B1 00 B2) ->
     /// download the application ($34/$36/$37) -> verify -> ECU reset ($11 01).
     ///
-    /// Runs on a background thread; raises Log/Progress/Completed events (marshal to the UI thread
-    /// in the handler). Honours Abort between steps and between transfer blocks. In DryRun the whole
-    /// sequence runs against the offline simulator so nothing is written to a module.
+    /// Runs on a background thread; raises Log/Progress/Completed (marshal to the UI thread in the
+    /// handler). Honours Abort between steps and between transfer blocks. A real J2534 channel is
+    /// used unless a channel factory is supplied (tests inject the simulator).
     /// </summary>
     public sealed class FlashSequencer
     {
         private readonly FlashOptions _opt;
         private readonly PhfFile _sbl;
         private readonly PhfFile _app;
+        private readonly Func<ICanChannel> _factory;
         private volatile bool _abort;
         private Thread _thread;
 
@@ -25,11 +26,13 @@ namespace FG2ICCFlasher.Core
         public event Action<int, string> Progress;     // percent (0-100), phase label
         public event Action<bool, string> Completed;    // success, message
 
-        public FlashSequencer(FlashOptions options, PhfFile secondaryBootloader, PhfFile application)
+        public FlashSequencer(FlashOptions options, PhfFile secondaryBootloader, PhfFile application,
+                              Func<ICanChannel> channelFactory = null)
         {
             _opt = options;
             _sbl = secondaryBootloader;
             _app = application;
+            _factory = channelFactory;
         }
 
         public bool IsRunning => _thread != null && _thread.IsAlive;
@@ -45,97 +48,66 @@ namespace FG2ICCFlasher.Core
         private void L(string m) => Log?.Invoke(m);
         private void P(int pct, string phase) => Progress?.Invoke(pct, phase);
 
-        private ICanChannel MakeChannel()
-            => _opt.DryRun ? (ICanChannel)new SimulatedCanChannel() : new J2534CanChannel();
-
         private void Run()
         {
-            ICanChannel ch = null;
-            bool tpStarted = false;
+            GdsSession session = null;
             try
             {
                 if (_app == null) { Done(false, "No application firmware loaded."); return; }
 
                 L("=====================================================");
-                L(_opt.DryRun ? "DRY RUN — simulator only, nothing will be written." : "LIVE FLASH — a real module will be reprogrammed.");
-                L($"Target: FDIM TX 0x{_opt.TxId:X3} / RX 0x{_opt.RxId:X3} on {_opt.Bus}.");
+                L("LIVE FLASH — the Front Display Interface Module (0x7A6) will be reprogrammed.");
+                L($"Target: TX 0x{_opt.TxId:X3} / RX 0x{_opt.RxId:X3} on {_opt.Bus}.");
                 L($"Application: {_app.FileName}  ({_app.TotalDataBytes} bytes, 0x{_app.StartAddress:X8}..0x{_app.EndAddress - 1:X8}), DFI 0x{_opt.DataFormatIdentifier:X2}.");
                 if (_opt.DownloadSbl && _sbl != null)
                     L($"Flash driver: {_sbl.FileName}  ({_sbl.TotalDataBytes} bytes, 0x{_sbl.StartAddress:X8}..0x{_sbl.EndAddress - 1:X8}).");
                 L("=====================================================");
 
-                ch = MakeChannel();
-                ch.Log += L;
-                ch.Frame += (dir, payload) => L($"  {dir}: {HexUtil.ToHex(payload)}");
-
                 P(0, "Connecting");
-                if (!ch.Open(_opt.DeviceName, _opt.Bus, _opt.TxId, _opt.RxId)) { Done(false, "Failed to open J2534 channel."); return; }
-                if (Aborted(ref ch)) return;
+                session = new GdsSession(_opt, L, _factory);
 
-                double volts = ch.ReadBatteryVoltage();
-                if (volts > 0)
-                {
-                    L($"Battery voltage: {volts:0.0} V");
-                    if (volts < _opt.MinBatteryVolts)
-                        L($"WARNING: battery {volts:0.0} V is below {_opt.MinBatteryVolts:0.0} V. A drop-out during erase/program can brick the module.");
-                }
+                // Connect + programming session + security + tester-present in one step.
+                string err;
+                P(5, "Session & security");
+                if (!session.Open(true, _opt.ProgrammingSession, true, true, out err)) { Done(false, err); return; }
+                if (Aborted()) return;
 
-                var gds = new GdsClient(ch);
-                gds.Log += L;
+                var gds = session.Gds;
 
-                // 1) Programming session
-                P(5, "Programming session");
-                L($"[$10] StartDiagnosticSession 0x{_opt.ProgrammingSession:X2} (ECUProgrammingMode)");
-                var r = gds.StartDiagnosticSession(_opt.ProgrammingSession, _opt.P2TimeoutMs);
-                if (!r.Positive) { Done(false, "Could not enter programming session: " + r.Describe()); return; }
-                if (Aborted(ref ch)) return;
-
-                // 2) Security access
-                P(10, "Security access");
-                L($"[$27] SecurityAccess level 0x{_opt.SecurityLevel:X2} using key-word {HexUtil.ToHex(_opt.KeyWord)}");
-                string secErr;
-                if (!gds.SecurityAccess(_opt.SecurityLevel, _opt.KeyWord, _opt.P2TimeoutMs, out secErr))
-                { Done(false, "Security access failed: " + secErr); return; }
-                if (Aborted(ref ch)) return;
-
-                // 3) Tester present keep-alive
-                ch.StartTesterPresent(_opt.TesterPresentIntervalMs);
-                tpStarted = true;
-
-                // 4) Download the secondary bootloader / flash driver to RAM
+                // Download the secondary bootloader / flash driver to RAM.
                 if (_opt.DownloadSbl && _sbl != null)
                 {
                     L("[SBL] Downloading flash driver to RAM...");
                     if (!DownloadImage(gds, _sbl, 15, 30, "Flash driver")) { Done(false, "Flash driver download failed (see log)."); return; }
-                    L("[SBL] Flash driver resident. (Module is expected to execute it on transfer-exit.)");
-                    if (Aborted(ref ch)) return;
+                    L("[SBL] Flash driver resident (module executes it on transfer-exit).");
+                    if (Aborted()) return;
                 }
 
-                // 5) Erase flash
+                // Erase flash.
                 if (_opt.EraseBeforeAppDownload)
                 {
                     P(32, "Erasing flash");
-                    L("[$B1 00 B2] Flash Memory Erase (this can take several seconds; $78 pending expected)...");
+                    L("[$B1 00 B2] Flash Memory Erase (can take several seconds; $78 pending expected)...");
                     var er = gds.FlashErase(_opt.EraseTimeoutMs);
                     if (!er.Positive) { Done(false, "Flash erase failed: " + er.Describe()); return; }
                     L("[$B1 00 B2] Erase complete.");
-                    if (Aborted(ref ch)) return;
+                    if (Aborted()) return;
                 }
 
-                // 6) Download the application
+                // Download the application.
                 L("[APP] Downloading application...");
                 if (!DownloadImage(gds, _app, 35, 90, "Programming application")) { Done(false, "Application download failed (see log)."); return; }
-                if (Aborted(ref ch)) return;
+                if (Aborted()) return;
 
-                // 7) Verify
+                // Verify.
                 if (_opt.VerifyAfter)
                 {
                     P(92, "Verifying");
                     L($"[verify] Header FILE CHECKSUM = 0x{_app.FileChecksum:X4}; additive-16 over data = 0x{_app.ComputeAdditiveChecksum16():X4}.");
-                    L("[verify] Application validation is performed by the ECU on RequestTransferExit ($37) / ECUReset ($11).");
+                    L("[verify] The ECU validates the application on RequestTransferExit ($37) / ECUReset ($11).");
                 }
 
-                // 8) ECU reset
+                // ECU reset.
                 if (_opt.EcuResetAfter)
                 {
                     P(96, "Resetting ECU");
@@ -144,11 +116,8 @@ namespace FG2ICCFlasher.Core
                     L("[$11 01] " + rr.Describe());
                 }
 
-                ch.StopTesterPresent(); tpStarted = false;
                 P(100, "Done");
-                Done(true, _opt.DryRun
-                    ? "Dry run completed successfully. Review the frame trace, then uncheck Dry Run to flash for real."
-                    : "Flash completed successfully.");
+                Done(true, "Flash completed successfully.");
             }
             catch (Exception ex)
             {
@@ -156,8 +125,7 @@ namespace FG2ICCFlasher.Core
             }
             finally
             {
-                try { if (ch != null && tpStarted) ch.StopTesterPresent(); } catch { }
-                try { ch?.Close(); } catch { }
+                session?.Dispose();
             }
         }
 
@@ -204,10 +172,9 @@ namespace FG2ICCFlasher.Core
             return true;
         }
 
-        private bool Aborted(ref ICanChannel ch)
+        private bool Aborted()
         {
             if (!_abort) return false;
-            try { ch?.StopTesterPresent(); } catch { }
             Done(false, "Aborted by user.");
             return true;
         }

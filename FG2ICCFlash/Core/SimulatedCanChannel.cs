@@ -95,6 +95,14 @@ namespace FG2ICCFlasher.Core
                     }
                 case 0x2E: // WriteDataByIdentifier -> 6E [did]
                     return new byte[] { 0x6E, uds.Length > 1 ? uds[1] : (byte)0, uds.Length > 2 ? uds[2] : (byte)0 };
+                case 0x32: // stopRoutine -> 72 [routine]
+                    return new byte[] { 0x72, uds.Length > 1 ? uds[1] : (byte)0 };
+                case 0x33: // requestRoutineResults -> 73 [routine][status=00 passed]
+                    return new byte[] { 0x73, uds.Length > 1 ? uds[1] : (byte)0, 0x00 };
+                case 0x18: // readDTCByStatus -> 58 [numberOfDTC=0]
+                    return new byte[] { 0x58, 0x00 };
+                case 0x14: // clearDiagnosticInformation -> 54
+                    return new byte[] { 0x54 };
                 case 0x3E: // TesterPresent -> 7E (usually suppressed)
                     return new byte[] { 0x7E, 0x00 };
                 default:
