@@ -8,7 +8,10 @@ via the CANbus(yes the OBD port) using an SAE J2534 PassThru Device. The hope is
 help to extend the overall life that we get out of these units across the board. I am simply trying to increase the average longevity of these things. 
   
 ## Instructions for use
-
+***This software has not yet been tested on an FDIM***   
+Download the software from the releases page, and fire it up, plug in your J2534 device to USB and OBD, select it in the software, select your firmware and flash! Simples. The software may be 
+a bit daunting, but I have tried to keep it as closely aligned to the engineering specification as possible. **If you come across a problem or a fault or a bug, please raise an issue in the repo issues section.**  
+  
 ## Recore - Reimplemented from the engineering specification  
 
 ## Firmware
