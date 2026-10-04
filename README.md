@@ -1,6 +1,9 @@
 <a href="https://testerpresent.com.au"><img width="18%" height="18%" align="right" alt="RightToRepair" src="https://github.com/user-attachments/assets/b41c7c2a-f293-45aa-97d7-bebcd65e9433" /></a>
 # FG2ICCFlash
-### *This project is dedicated to Janis*
+### *This project is dedicated to Janis*  
+
+<img width="30%" height="30%" alt="351" src="https://github.com/user-attachments/assets/90f7a269-0958-4e4b-9c02-faf627f02efc" />
+
   
 ## What this is
 This is full spec engineering tool for use with the Ford FGII Falcon's Front Display Interface Module, aka the ICC, the Interior Command Centre. It will perform diagnostics and reprogramming of the controller
