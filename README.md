@@ -14,7 +14,7 @@ help to extend the overall life that we get out of these units across the board.
 
   
 ## Instructions for use
-***This software has not yet been tested on an FDIM***   
+***~~This software has not yet been tested on an FDIM~~ Live testing is currently underway!***   
 Download the software from the releases page, and fire it up, plug in your J2534 device to USB and OBD, select it in the software, select your firmware and flash! Simples. The software may be 
 a bit daunting, but I have tried to keep it as closely aligned to the engineering specification as possible. **If you come across a problem or a fault or a bug, please raise an issue in the repo issues section.**  
   
