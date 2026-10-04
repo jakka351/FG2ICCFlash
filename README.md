@@ -1,7 +1,6 @@
 <a href="https://testerpresent.com.au"><img width="15%" height="15%" align="right" alt="RightToRepair" src="https://github.com/user-attachments/assets/b41c7c2a-f293-45aa-97d7-bebcd65e9433" /></a>
 # FG2ICCFlash
-Flash the FG MK2 ICC via SAE J2534 PassThru  
-*This project is dedicated to Janis*
+### *This project is dedicated to Janis*
   
 ## What this is
   
