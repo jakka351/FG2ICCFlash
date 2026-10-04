@@ -37,6 +37,13 @@ namespace FG2ICCFlasher.Core
         public event Action<string> Log;
         private void L(string m) => Log?.Invoke(m);
 
+        /// <summary>
+        /// Enhanced timeout (P2*) used for each re-read after a $78 "response pending" (and when
+        /// skipping a stray frame). The spec allows a module to pace $78 frames up to ~4 s apart, so
+        /// this must exceed the normal P2 — otherwise a healthy-but-slow module would falsely time out.
+        /// </summary>
+        public int PendingTimeoutMs = 5000;
+
         public GdsClient(ICanChannel channel) { _ch = channel; }
 
         /// <summary>
@@ -69,14 +76,14 @@ namespace FG2ICCFlasher.Core
                     {
                         if (++pendingGuard > MaxPending) return UdsResult.Timeout();
                         L($"  ... $78 response pending (service ${reqSid:X2}), waiting...");
-                        rsp = _ch.ReadNext(timeoutMs);
+                        rsp = _ch.ReadNext(PendingTimeoutMs);
                         continue;
                     }
                     if (svc == reqSid) return UdsResult.Neg(nrc, rsp);
 
                     // $7F for a different service -> stale frame, skip and retry.
                     if (++strayGuard > MaxStray) return UdsResult.Unexpected(rsp);
-                    rsp = _ch.ReadNext(timeoutMs);
+                    rsp = _ch.ReadNext(PendingTimeoutMs);
                     continue;
                 }
 
@@ -85,7 +92,7 @@ namespace FG2ICCFlasher.Core
                 // A frame for the wrong service: do NOT accept it as positive. Skip and retry.
                 L($"  (ignoring unexpected frame {HexUtil.ToHex(rsp, 0, Math.Min(4, rsp.Length))} while awaiting ${expectPos:X2})");
                 if (++strayGuard > MaxStray) return UdsResult.Unexpected(rsp);
-                rsp = _ch.ReadNext(timeoutMs);
+                rsp = _ch.ReadNext(PendingTimeoutMs);
             }
         }
 

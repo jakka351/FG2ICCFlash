@@ -83,7 +83,7 @@ namespace FG2ICCFlasher.Core
                 if (_opt.DownloadSbl && _sbl != null)
                 {
                     L("[SBL] Downloading flash driver to RAM...");
-                    if (!DownloadImage(gds, _sbl, 15, 30, "Flash driver")) { Done(false, "Flash driver download failed (see log)."); return; }
+                    if (!DownloadImage(session.Channel, gds, _sbl, 15, 30, "Flash driver")) { Done(false, "Flash driver download failed (see log)."); return; }
                     if (_opt.SblActivationRoutine != null && _opt.SblActivationRoutine.Length > 0)
                     {
                         L($"[SBL] Activating flash driver via $31 {HexUtil.ToHex(_opt.SblActivationRoutine)}");
@@ -113,7 +113,7 @@ namespace FG2ICCFlasher.Core
 
                 // Download the application.
                 L("[APP] Downloading application...");
-                if (!DownloadImage(gds, _app, 35, 90, "Programming application")) { Done(false, "Application download failed (see log)."); return; }
+                if (!DownloadImage(session.Channel, gds, _app, 35, 90, "Programming application")) { Done(false, "Application download failed (see log)."); return; }
                 if (Aborted()) return;
 
                 // Verify.
@@ -131,6 +131,15 @@ namespace FG2ICCFlasher.Core
                     L("[$11 01] ECUReset (hardReset)");
                     var rr = gds.EcuReset(0x01, _opt.P2TimeoutMs);
                     L("[$11 01] " + rr.Describe());
+                    // A no-response/timeout after $11 01 is normal (the module reboots). A NEGATIVE
+                    // response means the reset was refused — the data is written but the module did
+                    // not restart, so report it rather than claiming unqualified success.
+                    if (!rr.Positive && !rr.TimedOut)
+                    {
+                        P(100, "Done (reset refused)");
+                        Done(true, "Application programmed, but the final ECU reset was REFUSED (" + rr.Describe() + "). Power-cycle the module to load the new software and verify it came up.");
+                        return;
+                    }
                 }
 
                 P(100, "Done");
@@ -151,7 +160,7 @@ namespace FG2ICCFlasher.Core
         /// known-good MK1 FDIM flash trace, which issues a separate RequestDownload for each memory
         /// segment at its own address — never one flattened span). Progress maps into [pctFrom, pctTo].
         /// </summary>
-        private bool DownloadImage(GdsClient gds, PhfFile phf, int pctFrom, int pctTo, string phase)
+        private bool DownloadImage(ICanChannel ch, GdsClient gds, PhfFile phf, int pctFrom, int pctTo, string phase)
         {
             var segments = phf.Image.Segments;   // sorted + coalesced (adjacent runs already merged)
             if (segments.Count == 0) { L("  Image is empty — nothing to download."); return false; }
@@ -160,6 +169,13 @@ namespace FG2ICCFlasher.Core
             int doneBytes = 0;
             L($"  {segments.Count} contiguous segment(s), {totalBytes} data bytes total.");
 
+            // IDS sends NO periodic tester-present during a TransferData burst — the block traffic
+            // keeps the session alive. A periodic 3E injected into an in-progress multi-frame $36
+            // desyncs the transfer (observed as a mid-download block timeout on live hardware), so
+            // pause the keep-alive for the download and restore it afterwards (erase/idle need it).
+            ch.StopTesterPresent();
+            try
+            {
             foreach (var seg in segments)
             {
                 if (_abort) { L("  Aborted by user."); return false; }
@@ -197,6 +213,12 @@ namespace FG2ICCFlasher.Core
                 L($"[$37] segment 0x{addr:X8} done — {seg.Data.Length} bytes in {blockNo} block(s), maxBlk=0x{maxBlk:X4}.");
             }
             return true;
+            }
+            finally
+            {
+                // Restore the keep-alive for the next idle/erase phase.
+                ch.StartTesterPresent(_opt.TesterPresentIntervalMs);
+            }
         }
 
         private bool Aborted()

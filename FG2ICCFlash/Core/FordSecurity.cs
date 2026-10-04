@@ -80,11 +80,30 @@ namespace FG2ICCFlasher.Core
             public override string ToString() => Name;
         }
 
-        /// <summary>The key-words offered in the UI; MK2 "Janis" first (default for MK2 FG).</summary>
+        /// <summary>5-byte ASCII secret from a code-word (case-sensitive).</summary>
+        private static byte[] Ascii5(string s) => System.Text.Encoding.ASCII.GetBytes(s);
+
+        /// <summary>
+        /// Key-words offered in the UI. "pLaRM" (the secret baked into the working FG2ICCComms app's
+        /// key_from_seed for this FDIM) is first and is the DEFAULT selection, followed by the two
+        /// documented 0x7A6 secrets and candidate code-words. The box is editable, so a custom 5-byte
+        /// hex key can also be typed/pasted directly.
+        /// </summary>
         public static readonly IReadOnlyList<KeyWord> KnownKeys = new List<KeyWord>
         {
+            new KeyWord("pLaRM (FG2ICCComms)", new byte[] { 0x70, 0x4C, 0x61, 0x52, 0x4D }),
             new KeyWord("Janis (MK2)", KeyJanis),
             new KeyWord("BradW (MK1)", KeyBradW),
+            new KeyWord("Carol", Ascii5("Carol")),
+            new KeyWord("JAMES", Ascii5("JAMES")),
+            new KeyWord("Bosch", Ascii5("Bosch")),
+            new KeyWord("FAITH", Ascii5("FAITH")),
+            new KeyWord("REMAT", Ascii5("REMAT")),
+            new KeyWord("Rowan", Ascii5("Rowan")),
+            new KeyWord("JaMes", Ascii5("JaMes")),
+            new KeyWord("SAMMY", Ascii5("SAMMY")),
+            new KeyWord("Lupin", Ascii5("Lupin")),
+            new KeyWord("nowaR", Ascii5("nowaR")),
         };
 
         /// <summary>

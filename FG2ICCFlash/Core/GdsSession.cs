@@ -56,6 +56,7 @@ namespace FG2ICCFlasher.Core
 
             Gds = new GdsClient(Channel);
             Gds.Log += L;
+            Gds.PendingTimeoutMs = _opt.P2StarTimeoutMs;   // P2* wait for $78 pending re-reads
 
             if (enterSession)
             {

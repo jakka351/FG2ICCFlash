@@ -52,7 +52,7 @@ namespace FG2ICCFlasher.Core
             }
         }
 
-        public static void RunSelfTest(GdsClient gds, FlashOptions opt, Action<string> log, byte routineId, string label)
+        public static void RunSelfTest(GdsClient gds, FlashOptions opt, Action<string> log, byte routineId, string label, Func<bool> cancelled = null)
         {
             log($"[$31 {routineId:X2}] Starting {label}...");
             var start = gds.StartRoutine(new byte[] { routineId, 0x00 }, opt.RoutineTimeoutMs);
@@ -62,6 +62,7 @@ namespace FG2ICCFlasher.Core
             var sw = Stopwatch.StartNew();
             while (sw.ElapsedMilliseconds < opt.RoutineTimeoutMs)
             {
+                if (cancelled != null && cancelled()) { log("  Cancelled."); return; }
                 var res = gds.RequestRoutineResults(new byte[] { routineId }, opt.P2TimeoutMs);
                 if (res.Positive) { ReportRoutineResults(res.Data, routineId, label, log); return; }
                 if (!res.TimedOut && res.NrcCode == 0x21) { Thread.Sleep(250); continue; } // busy-repeatRequest

@@ -98,16 +98,20 @@ namespace FG2ICCFlasher.Core
             var maskMsg = new PassThruMsg(_protocol, TxFlag.NONE, mask);
             var patMsg = new PassThruMsg(_protocol, TxFlag.NONE, pattern);
             var flowMsg = new PassThruMsg(_protocol, TxFlag.ISO15765_FRAME_PAD, flow);
-            IntPtr mPtr = maskMsg.ToIntPtr(), pPtr = patMsg.ToIntPtr(), fPtr = flowMsg.ToIntPtr();
+            // Allocate inside the try so a throw on the 2nd/3rd ToIntPtr cannot leak an earlier one.
+            IntPtr mPtr = IntPtr.Zero, pPtr = IntPtr.Zero, fPtr = IntPtr.Zero;
             try
             {
+                mPtr = maskMsg.ToIntPtr(); pPtr = patMsg.ToIntPtr(); fPtr = flowMsg.ToIntPtr();
                 var err = _port.Functions.PassThruStartMsgFilter((int)_channelId, FilterType.FLOW_CONTROL_FILTER, mPtr, pPtr, fPtr, ref _filterId);
                 if (err != J2534Err.STATUS_NOERROR) { L("PassThruStartMsgFilter error: " + err); return false; }
                 return true;
             }
             finally
             {
-                Marshal.FreeHGlobal(mPtr); Marshal.FreeHGlobal(pPtr); Marshal.FreeHGlobal(fPtr);
+                if (mPtr != IntPtr.Zero) Marshal.FreeHGlobal(mPtr);
+                if (pPtr != IntPtr.Zero) Marshal.FreeHGlobal(pPtr);
+                if (fPtr != IntPtr.Zero) Marshal.FreeHGlobal(fPtr);
             }
         }
 
@@ -180,8 +184,12 @@ namespace FG2ICCFlasher.Core
             {
                 if (!_open) return false;
                 StopTesterPresentNoLock();
-                // TesterPresent, suppress positive response: 3E 80
-                var frame = HexUtil.Concat(HexUtil.BE32(TxId), new byte[] { 0x3E, 0x80 });
+                // TesterPresent with GDS/KWP2000 sub-function 0x02 = "no response required".
+                // This module is GDS v2003, which defines ONLY $01 (respond) / $02 (no response) —
+                // NOT the UDS 0x80 "suppressPositiveResponse" bit. Sending 0x80 makes the module reply
+                // with 7E, and those acks collide with the TransferData $76 responses (seen on a live
+                // flash). The known-good MK1 trace uses 3E 02. (Keep-alive frames need no reply.)
+                var frame = HexUtil.Concat(HexUtil.BE32(TxId), new byte[] { 0x3E, 0x02 });
                 var msg = new PassThruMsg(_protocol, TxFlag.ISO15765_FRAME_PAD, frame);
                 IntPtr ptr = msg.ToIntPtr();
                 try

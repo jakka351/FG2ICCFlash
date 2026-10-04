@@ -43,7 +43,8 @@ namespace FG2ICCFlasher.Core
 
         // ---- Timing (ms) ----
         public uint TesterPresentIntervalMs = 2000; // < S3 (5 s)
-        public int P2TimeoutMs = 2000;              // normal service response
+        public int P2TimeoutMs = 2000;              // normal service response (P2)
+        public int P2StarTimeoutMs = 5000;          // enhanced wait after a $78 "response pending" (P2*)
         public int TransferTimeoutMs = 5000;        // per TransferData block
         public int EraseTimeoutMs = 60000;          // Flash Erase can take many seconds (+$78)
         public int RoutineTimeoutMs = 20000;        // routines / checksum

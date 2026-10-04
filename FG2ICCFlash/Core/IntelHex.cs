@@ -85,6 +85,7 @@ namespace FG2ICCFlasher.Core
                     throw new FormatException("Odd-length Intel HEX record: " + line);
 
                 int n = (line.Length - 1) / 2;
+                if (n < 5) throw new FormatException("Intel HEX record too short: " + line);
                 var rec = new byte[n];
                 for (int i = 0; i < n; i++)
                     rec[i] = (byte)((HexUtil.HexDigit(line[1 + i * 2]) << 4) | HexUtil.HexDigit(line[2 + i * 2]));
@@ -158,9 +159,11 @@ namespace FG2ICCFlasher.Core
                 case TypeEof:
                     return true;
                 case TypeExtSeg:
+                    if (len != 2) throw new FormatException($"Extended segment address record (type 02) must carry 2 bytes, got {len}.");
                     baseAddress = (uint)(((rec[dataStart] << 8) | rec[dataStart + 1]) << 4);
                     return false;
                 case TypeExtLinear:
+                    if (len != 2) throw new FormatException($"Extended linear address record (type 04) must carry 2 bytes, got {len}.");
                     baseAddress = (uint)(((rec[dataStart] << 8) | rec[dataStart + 1]) << 16);
                     return false;
                 case TypeStartSeg:

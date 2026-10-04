@@ -90,7 +90,13 @@ namespace FG2ICCFlasher.Core
                 string tok = tokenRaw;
                 if (tok.StartsWith("0x", StringComparison.OrdinalIgnoreCase)) tok = tok.Substring(2);
                 var digits = new StringBuilder(tok.Length);
-                foreach (var c in tok) if (Uri.IsHexDigit(c)) digits.Append(c);
+                foreach (var c in tok)
+                {
+                    // Reject a non-hex character rather than silently dropping it (a typo like "12x34"
+                    // must not become a different valid request/key).
+                    if (!Uri.IsHexDigit(c)) throw new FormatException("Invalid hex character '" + c + "' in \"" + tokenRaw + "\".");
+                    digits.Append(c);
+                }
                 if (digits.Length == 0) continue;
                 string hex = digits.ToString();
                 if ((hex.Length & 1) == 1) hex = "0" + hex;
