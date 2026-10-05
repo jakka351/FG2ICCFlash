@@ -29,11 +29,12 @@ Read and Clear DTC is available from the diagnostics tab, alongside both the On 
 
 ## Firmware
 A collection of firmware files have been provided for use with the software in PHF, Binary and Hex format, use as you will. I believe the -CS firmware is the FPV spec firmware, with extra EEPROM space. 
-Community based recore backups will also be uploaded to the repository and be available from the tool.
+Official Firmware, Updates and Community pulled recore backups are available for download from within the Stage 2 tab of the tool, and are hosted at https://www.testerpresent.com.au/FDIM/
 
 ## Brick risk  
 These Mark 2 FDIM's are extremely delicate and as such any use of this software may inexplicably brick the FDIM rendering it essentially useless. Use at your own risk, if you are
-unsure, contract the services of a suitably qualified <a href="https://barrascan.net/">Module Programmer</a> to program the module. You can thank SWSA Australia for this. 
+unsure, contract the services of a suitably qualified <a href="https://barrascan.net/">Module Programmer</a> to program the module. 
+<a href="https://www.sws.co.jp/en/corporation/outline/office/detail/sws_australia_pty_ltdsws-a.html">You can thank SWSA Australia for this.</a> 
 
 ## FFAU  
 <a href="https://fordforums.com.au"><img width="680" height="118" alt="FFAU" src="https://github.com/user-attachments/assets/c430872d-e4a5-4986-8bb8-50aa7657f5d9" /></a>  
