@@ -38,6 +38,9 @@ unsure, contract the services of a suitably qualified <a href="https://barrascan
 <a href="https://fordforums.com.au"><img width="680" height="118" alt="FFAU" src="https://github.com/user-attachments/assets/c430872d-e4a5-4986-8bb8-50aa7657f5d9" /></a>  
 
 Failing ICC Thread: https://fordforums.com.au/showthread.php?t=11479908&page=2   
+
+## Thanks
+**JasonACT** for the extensive documentation and development effort put in over a long period of time.   
   
 
 <img width="20%" height="20%" alt="Get your anonsies" align="right" src="https://github.com/user-attachments/assets/084977ea-9fcb-4995-8fde-ceaa79152bd0" />
