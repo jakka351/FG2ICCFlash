@@ -50,6 +50,9 @@ These Mark 2 FDIM's are extremely delicate and as such any use of this software 
 unsure, contract the services of a suitably qualified <a href="https://barrascan.net/">Module Programmer</a> to program the module. 
 <a href="https://www.sws.co.jp/en/corporation/outline/office/detail/sws_australia_pty_ltdsws-a.html">You can thank SWSA for that.</a> 
 
+## If you fucked up...  
+Professional Automotive Technical Support is available from Tester Present. **How convenient! That's me!**. 
+
 ## FFAU  
 <a href="https://fordforums.com.au"><img width="680" height="118" alt="FFAU" src="https://github.com/user-attachments/assets/c430872d-e4a5-4986-8bb8-50aa7657f5d9" /></a>  
 
