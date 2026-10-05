@@ -67,6 +67,45 @@ namespace FG2ICCFlasher.UI
         private Button btnRunCustom;
         private CheckBox chkCustomUnlock;
 
+        // Stage 2 — USB tab
+        private TabPage tabUsb;
+        private GroupBox grpUsbDrive;
+        private ComboBox comboUsbDrive;
+        private Button btnUsbRefresh;
+        private Label lblUsbInfo;
+        private GroupBox grpUsbPayload;
+        private ComboBox comboPayload;
+        private TextBox txtPayloadSource;
+        private Button btnBrowsePayload;
+        private Label lblPayloadInfo;
+        private Button btnFormatUsb;
+        private Button btnWriteUsb;
+        private Button btnUsbAbort;
+        private TextBox txtUsbInstructions;
+        private GroupBox grpRecore;
+        private ComboBox comboRecoreBackup;
+        private Label lblRecoreInfo;
+        private TextBox txtRecoreUrl;
+        private Button btnLoadCatalog;
+        private Button btnEditScript;
+
+        // Configuration tab
+        private TabPage tabConfig;
+        private GroupBox grpConfigSrc;
+        private Button btnReadConfig;
+        private Button btnLoadAbt;
+        private Button btnSaveAbt;
+        private Label lblConfigStatus;
+        private GroupBox grpConfigEdit;
+        private TextBox txtVin;
+        private Button btnWriteVin;
+        private ComboBox comboZone;
+        private Button btnWriteZone;
+        private DataGridView gridConfig;
+        private Button btnApplyRaw;
+        private Button btnWriteBlock;
+        private Label lblRawHeader;
+
         // Progress + log
         private ProgressBar progress;
         private Label lblPhase;
@@ -93,9 +132,11 @@ namespace FG2ICCFlasher.UI
 
             // ---------------- Tabs ----------------
             this.tabs = new TabControl { Location = new Point(12, 116), Size = new Size(828, 356), Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right };
-            this.tabFlash = new TabPage { Text = "Flash" };
+            this.tabFlash = new TabPage { Text = "Stage 1 Flash CAN" };
+            this.tabUsb = new TabPage { Text = "Stage 2 — ICC USB" };
             this.tabDiag = new TabPage { Text = "Diagnostics && Routines" };
-            this.tabs.TabPages.AddRange(new TabPage[] { tabFlash, tabDiag });
+            this.tabConfig = new TabPage { Text = "Configuration" };
+            this.tabs.TabPages.AddRange(new TabPage[] { tabFlash, tabUsb, tabDiag, tabConfig });
 
             // ---- Interface group ----
             this.grpConn = new GroupBox { Text = "Interface", Location = new Point(8, 8), Size = new Size(804, 84) };
@@ -163,6 +204,111 @@ namespace FG2ICCFlasher.UI
                 Lbl("Custom request (hex):", 16, 146), txtCustom, btnRunCustom, chkCustomUnlock });
 
             this.tabDiag.Controls.AddRange(new Control[] { grpIdent, grpRoutines });
+
+            // ---- Stage 2 — ICC USB tab ----
+            this.grpUsbDrive = new GroupBox { Text = "Target USB drive  (removable USB/SD only — fixed and system disks are never shown)", Location = new Point(8, 8), Size = new Size(804, 56) };
+            this.comboUsbDrive = new ComboBox { Location = new Point(90, 22), Size = new Size(500, 23), DropDownStyle = ComboBoxStyle.DropDownList };
+            this.btnUsbRefresh = new Button { Text = "Refresh", Location = new Point(600, 21), Size = new Size(80, 25) };
+            this.lblUsbInfo = new Label { Text = "", Location = new Point(690, 25), AutoSize = true, ForeColor = Color.DimGray };
+            this.grpUsbDrive.Controls.AddRange(new Control[] { Lbl("USB drive:", 12, 25), comboUsbDrive, btnUsbRefresh, lblUsbInfo });
+
+            this.grpUsbPayload = new GroupBox { Text = "Payload  (the selected folder's contents are written to the USB root)", Location = new Point(8, 70), Size = new Size(804, 84) };
+            this.comboPayload = new ComboBox { Location = new Point(90, 22), Size = new Size(400, 23), DropDownStyle = ComboBoxStyle.DropDownList };
+            this.txtPayloadSource = new TextBox { Location = new Point(110, 52), Size = new Size(586, 23), ReadOnly = true };
+            this.btnBrowsePayload = new Button { Text = "Browse...", Location = new Point(704, 51), Size = new Size(80, 25) };
+            this.lblPayloadInfo = new Label { Text = "", Location = new Point(496, 25), AutoSize = true, ForeColor = Color.DimGray };
+            this.grpUsbPayload.Controls.AddRange(new Control[] { Lbl("Payload:", 12, 25), comboPayload, lblPayloadInfo, Lbl("Source folder:", 12, 55), txtPayloadSource, btnBrowsePayload });
+
+            this.btnFormatUsb = new Button { Text = "1.  Format USB (FAT32)…", Location = new Point(8, 164), Size = new Size(190, 30) };
+            this.btnWriteUsb = new Button { Text = "2.  Write payload to USB", Location = new Point(206, 164), Size = new Size(190, 30), Font = new Font("Segoe UI", 9f, FontStyle.Bold) };
+            this.btnUsbAbort = new Button { Text = "Abort", Location = new Point(404, 164), Size = new Size(90, 30), Enabled = false };
+
+            this.txtUsbInstructions = new TextBox
+            {
+                Location = new Point(8, 202),
+                Size = new Size(804, 120),
+                Multiline = true,
+                ReadOnly = true,
+                ScrollBars = ScrollBars.Vertical,
+                BackColor = Color.FromArgb(0xFF, 0xFD, 0xF0),
+                Font = new Font("Segoe UI", 8.25f),
+                Text =
+                    "PREPARE THE USB  —  do this now, in this tool:\r\n" +
+                    "   1.  Plug the USB stick into this PC, click Refresh, and select it above.\r\n" +
+                    "   2.  Click \"1. Format USB (FAT32)…\"  — in the Windows dialog set File system = FAT32, then Start.\r\n" +
+                    "   3.  Choose the Payload and its Source folder, then click \"2. Write payload to USB\". Wait for \"USB ready\", then safely eject.\r\n" +
+                    "\r\nTHEN, ON THE VEHICLE  —  after the Stage-1 CAN flash (screen goes dark, then powers back up):\r\n" +
+                    "   4.  External power supply on the battery, ignition ON. Insert the USB into the centre-console USB port.\r\n" +
+                    "   5.  Wait for the USB light to stop flashing and the \"USB connected\" message to clear.\r\n" +
+                    "   6.  Upload runs 5–30 min (TX 5–10 / TS 15–20 / Titanium 25–30). The USB light flashes — this is normal.\r\n" +
+                    "   7.  Screen blanks up to 5 min, then the ICC reboots and a Bluetooth update runs (shows %). If it stalls below 17%, retry.\r\n" +
+                    "   8.  When the original screen returns it is done: REMOVE the USB, then run a CMDTC self-test and clear any codes.\r\n" +
+                    "\r\n⚠  Use ONLY the software level correct for this vehicle — the wrong level permanently destroys the ICC.\r\n" +
+                    "⚠  Once the in-car upload starts, DO NOT remove the USB or switch the ignition OFF until it completes."
+            };
+
+            // Recore options panel — shown only when the "Recore" payload is selected (occupies the
+            // instructions area; the instructions hide while it is visible).
+            this.grpRecore = new GroupBox { Text = "Recore image  (factory package-tree re-image — select a community/backup image or load a catalog)", Location = new Point(8, 202), Size = new Size(804, 120), Visible = false };
+            this.comboRecoreBackup = new ComboBox { Location = new Point(104, 20), Size = new Size(500, 23), DropDownStyle = ComboBoxStyle.DropDownList };
+            this.btnEditScript = new Button { Text = "Edit script (z.sh)…", Location = new Point(616, 19), Size = new Size(180, 25) };
+            this.txtRecoreUrl = new TextBox { Location = new Point(150, 50), Size = new Size(454, 23) };
+            this.btnLoadCatalog = new Button { Text = "Load catalog", Location = new Point(616, 49), Size = new Size(180, 25) };
+            this.lblRecoreInfo = new Label { Text = "", Location = new Point(12, 82), Size = new Size(784, 32), ForeColor = Color.DimGray };
+            this.grpRecore.Controls.AddRange(new Control[] {
+                Lbl("Recore image:", 12, 24), comboRecoreBackup, btnEditScript,
+                Lbl("Catalog URL / folder:", 12, 54), txtRecoreUrl, btnLoadCatalog, lblRecoreInfo });
+
+            this.tabUsb.Controls.AddRange(new Control[] { grpUsbDrive, grpUsbPayload, btnFormatUsb, btnWriteUsb, btnUsbAbort, txtUsbInstructions, grpRecore });
+
+            // ---- Configuration tab (As-Built) ----
+            this.grpConfigSrc = new GroupBox { Text = "As-Built source  (read via $21 / write via $3B in the $10 87 adjustment session)", Location = new Point(8, 8), Size = new Size(804, 56) };
+            this.btnReadConfig = new Button { Text = "Read As-Built from Module", Location = new Point(12, 19), Size = new Size(190, 28) };
+            this.btnLoadAbt = new Button { Text = "Load ABT…", Location = new Point(210, 19), Size = new Size(110, 28) };
+            this.btnSaveAbt = new Button { Text = "Save ABT…", Location = new Point(328, 19), Size = new Size(110, 28) };
+            this.lblConfigStatus = new Label { Text = "Uses the device/bus/key from the Stage 1 tab.", Location = new Point(450, 25), AutoSize = true, ForeColor = Color.DimGray };
+            this.grpConfigSrc.Controls.AddRange(new Control[] { btnReadConfig, btnLoadAbt, btnSaveAbt, lblConfigStatus });
+
+            this.grpConfigEdit = new GroupBox { Text = "Configuration", Location = new Point(8, 70), Size = new Size(804, 96) };
+            this.txtVin = new TextBox { Location = new Point(60, 24), Size = new Size(200, 23), CharacterCasing = CharacterCasing.Upper, MaxLength = 17, Font = new Font("Consolas", 9f) };
+            this.btnWriteVin = new Button { Text = "Write VIN", Location = new Point(272, 23), Size = new Size(100, 26) };
+            this.comboZone = new ComboBox { Location = new Point(60, 58), Size = new Size(160, 23), DropDownStyle = ComboBoxStyle.DropDownList };
+            this.btnWriteZone = new Button { Text = "Write Zone", Location = new Point(232, 57), Size = new Size(100, 26) };
+            this.grpConfigEdit.Controls.AddRange(new Control[] {
+                Lbl("VIN:", 12, 28), txtVin, btnWriteVin,
+                new Label { Text = "(block 0x01 — the module usually rejects a VIN rewrite)", Location = new Point(380, 28), AutoSize = true, ForeColor = Color.DimGray },
+                Lbl("Zone:", 12, 61), comboZone, btnWriteZone,
+                new Label { Text = "(block 0x03 — 0x0B dual / 0x00 single)", Location = new Point(340, 61), AutoSize = true, ForeColor = Color.DimGray } });
+
+            this.lblRawHeader = new Label { Text = "Raw As-Built blocks — edit the Hex column, press Enter, then Apply (or Write block to the module):", Location = new Point(10, 170), AutoSize = true, ForeColor = Color.FromArgb(0x00, 0x24, 0x7D) };
+            this.gridConfig = new DataGridView
+            {
+                Location = new Point(8, 188),
+                Size = new Size(804, 98),
+                AllowUserToAddRows = false,
+                AllowUserToDeleteRows = false,
+                AllowUserToResizeRows = false,
+                RowHeadersVisible = false,
+                MultiSelect = false,
+                SelectionMode = DataGridViewSelectionMode.FullRowSelect,
+                AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.None,
+                BackgroundColor = Color.White,
+                BorderStyle = BorderStyle.FixedSingle,
+                Font = new Font("Consolas", 8.5f),
+                EditMode = DataGridViewEditMode.EditOnKeystrokeOrF2,
+                ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.DisableResizing
+            };
+            this.gridConfig.Columns.Add(new DataGridViewTextBoxColumn { Name = "colLoc", HeaderText = "Loc", Width = 44, ReadOnly = true, SortMode = DataGridViewColumnSortMode.NotSortable });
+            this.gridConfig.Columns.Add(new DataGridViewTextBoxColumn { Name = "colBlk", HeaderText = "Blk", Width = 36, ReadOnly = true, SortMode = DataGridViewColumnSortMode.NotSortable });
+            this.gridConfig.Columns.Add(new DataGridViewTextBoxColumn { Name = "colMeaning", HeaderText = "Meaning", Width = 236, ReadOnly = true, SortMode = DataGridViewColumnSortMode.NotSortable });
+            this.gridConfig.Columns.Add(new DataGridViewTextBoxColumn { Name = "colHex", HeaderText = "Hex (editable)", Width = 300, SortMode = DataGridViewColumnSortMode.NotSortable });
+            this.gridConfig.Columns.Add(new DataGridViewTextBoxColumn { Name = "colAscii", HeaderText = "ASCII", Width = 170, ReadOnly = true, SortMode = DataGridViewColumnSortMode.NotSortable });
+
+            this.btnApplyRaw = new Button { Text = "Apply edits", Location = new Point(8, 290), Size = new Size(120, 26) };
+            this.btnWriteBlock = new Button { Text = "Write selected block…", Location = new Point(134, 290), Size = new Size(170, 26) };
+
+            this.tabConfig.Controls.AddRange(new Control[] { grpConfigSrc, grpConfigEdit, lblRawHeader, gridConfig, btnApplyRaw, btnWriteBlock,
+                new Label { Text = "⚠  Writes need security access.", Location = new Point(318, 296), AutoSize = true, ForeColor = Color.FromArgb(0xB0, 0x30, 0x00) } });
 
             // ---------------- Progress + log ----------------
             this.progress = new ProgressBar { Location = new Point(12, 480), Size = new Size(828, 18), Minimum = 0, Maximum = 100, Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right };

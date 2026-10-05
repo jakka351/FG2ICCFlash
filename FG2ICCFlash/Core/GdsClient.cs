@@ -133,6 +133,20 @@ namespace FG2ICCFlasher.Core
             => Request(new byte[] { 0x14, (byte)(groupOfDtc >> 8), (byte)groupOfDtc }, timeoutMs);
 
         /// <summary>
+        /// Read As-Built data: readDataByLocalIdentifier ($21) + location, e.g. "21 00".
+        /// Positive response "61 &lt;loc&gt; &lt;data...&gt;". Requires the adjustment session ($10 87).
+        /// </summary>
+        public UdsResult ReadAsBuilt(byte location, int timeoutMs)
+            => Request(new byte[] { 0x21, location }, timeoutMs);
+
+        /// <summary>
+        /// Write As-Built data: writeDataByLocalIdentifier ($3B) + location + data, e.g. "3B 03 0B 0A …".
+        /// Positive response "7B &lt;loc&gt;". Requires the adjustment session ($10 87) AND security access.
+        /// </summary>
+        public UdsResult WriteAsBuilt(byte location, byte[] data, int timeoutMs)
+            => Request(HexUtil.Concat(new byte[] { 0x3B, location }, data ?? new byte[0]), timeoutMs);
+
+        /// <summary>
         /// Flash Memory Erase: diagnosticCommand $B1, commandCommonIdentifier $00B2, plus the
         /// erase-sectors parameter byte. A known-good MK1 FDIM flash trace shows the request is
         /// "B1 00 B2 00" (the trailing byte = the PHF FLASH ERASE SECTORS value), so the parameter

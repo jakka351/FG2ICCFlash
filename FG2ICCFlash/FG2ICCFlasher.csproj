@@ -47,6 +47,9 @@
     <Reference Include="System.Core" />
     <Reference Include="System.Drawing" />
     <Reference Include="System.Windows.Forms" />
+    <Reference Include="System.Web.Extensions" />
+    <Reference Include="System.IO.Compression" />
+    <Reference Include="System.IO.Compression.FileSystem" />
     <Reference Include="Microsoft.CSharp" />
   </ItemGroup>
   <ItemGroup>
@@ -68,8 +71,14 @@
     <Compile Include="Core\GdsSession.cs" />
     <Compile Include="Core\ModuleOps.cs" />
     <Compile Include="Core\FirmwareCatalog.cs" />
+    <Compile Include="Core\UsbPrep.cs" />
+    <Compile Include="Core\AsBuiltData.cs" />
+    <Compile Include="Core\RecoreScripts.cs" />
+    <Compile Include="Core\RecoreCatalog.cs" />
+    <Compile Include="Core\RecoreBuilder.cs" />
     <Compile Include="Core\FlashSequencer.cs" />
     <Compile Include="UI\AustralianFlagRenderer.cs" />
+    <Compile Include="UI\ScriptEditorForm.cs" />
     <Compile Include="UI\MainForm.cs">
       <SubType>Form</SubType>
     </Compile>
