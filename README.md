@@ -12,8 +12,8 @@ functionality ever again, so here is a ***fully open source and substantive solu
 The reprogramming happens in two stages, the first via the CANbus(yes the OBD port) using an SAE J2534 PassThru Device, the second is via USB. The intent here is in the spirit of Right to Repair, and the project's mission is to help to extend the overall life that we get out of these units across the board. This project is aimed at the **DIY folks at home, Independent Workshops and Ford Dealerships** who need the functionality that they have lost to time back in a working state again. Also in addition the USB-Recore functionality is built out and a small linux scripting engine for developing custom payloads to recore, as well as community based firmware backups are selectable as a recore option, and navimaps.zip as well. Enjoy, hopefully this helps some folks save a few units from the bin. 
 
  ***We have a bench verified succesful OBD flash!***    
-<img width="852" height="778" alt="image" src="https://github.com/user-attachments/assets/ef161f27-faf3-4c71-ab3c-c5b73002f76a" />
-<img width="852" height="776" alt="image" src="https://github.com/user-attachments/assets/ab5e54d3-f15f-492c-a840-600952e7fc76" />
+<img width="75%" height="75%" alt="image" src="https://github.com/user-attachments/assets/ef161f27-faf3-4c71-ab3c-c5b73002f76a" />
+<img width="75%" height="75%" alt="image" src="https://github.com/user-attachments/assets/ab5e54d3-f15f-492c-a840-600952e7fc76" />
 
 
 
@@ -22,7 +22,7 @@ The reprogramming happens in two stages, the first via the CANbus(yes the OBD po
 
 Download the software from the releases page, and fire it up, plug in your J2534 device to USB and OBD, select it in the software, select your firmware and flash! Stage 2 via USB is explained within the tool. 
 The software may be a bit daunting, but I have tried to keep it as user friendly as possible. **If you come across a problem or a fault or a bug, please raise an issue in the repo issues section.**  
-<img width="857" height="774" alt="image" src="https://github.com/user-attachments/assets/c8c3a6d1-c3da-4551-a0a5-d2ef22e83c11" />
+<img width="75%" height="75%" alt="image" src="https://github.com/user-attachments/assets/c8c3a6d1-c3da-4551-a0a5-d2ef22e83c11" />
 
 ## Diagnostics
 Read and Clear DTC is available from the diagnostics tab, alongside both the On Demand Self Test and the EOL Assembly Self Test.  
@@ -38,7 +38,7 @@ Official Firmware, Updates and Community pulled recore backups are available for
 ## Brick risk  
 These Mark 2 FDIM's are extremely delicate and as such any use of this software may inexplicably brick the FDIM rendering it essentially useless. Use at your own risk, if you are
 unsure, contract the services of a suitably qualified <a href="https://barrascan.net/">Module Programmer</a> to program the module. 
-<a href="https://www.sws.co.jp/en/corporation/outline/office/detail/sws_australia_pty_ltdsws-a.html">You can thank SWSA Australia for this.</a> 
+<a href="https://www.sws.co.jp/en/corporation/outline/office/detail/sws_australia_pty_ltdsws-a.html">You can thank SWSA for that.</a> 
 
 ## FFAU  
 <a href="https://fordforums.com.au"><img width="680" height="118" alt="FFAU" src="https://github.com/user-attachments/assets/c430872d-e4a5-4986-8bb8-50aa7657f5d9" /></a>  
