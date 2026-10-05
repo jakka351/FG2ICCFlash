@@ -27,6 +27,10 @@ The software may be a bit daunting, but I have tried to keep it as user friendly
 ## Diagnostics
 Read and Clear DTC is available from the diagnostics tab, alongside both the On Demand Self Test and the EOL Assembly Self Test.  
 
+## Configuration via EEPROM/As Built Data
+There is a built in As Built Data editor in the tool, that allows you to set the module configuration options, programmed VIN and single/dual zone settings. This is currently untested. The tool will
+also load and save .ABT As Built files in the forscan format. 
+
 ## Firmware
 A collection of firmware files have been provided for use with the software in PHF, Binary and Hex format, use as you will. I believe the -CS firmware is the FPV spec firmware, with extra EEPROM space. 
 Official Firmware, Updates and Community pulled recore backups are available for download from within the Stage 2 tab of the tool, and are hosted at https://www.testerpresent.com.au/FDIM/
