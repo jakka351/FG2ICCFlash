@@ -18,6 +18,11 @@ The reprogramming happens in two stages, the first via the CANbus(yes the OBD po
 <img width="75%" height="75%" alt="image" src="https://github.com/user-attachments/assets/ab5e54d3-f15f-492c-a840-600952e7fc76" />
 
 
+## Requirements
+  - A windows laptop with .NET 4.8.1 x86 installed.
+  - An SAE <a hef="https://www.boschdiagnostics.com/j2534-faq">J2534 PassThru</a> Device with Ford MidSpeed CAN @ 125KBPS capability. (ISO15765_PS Pins 3/11)
+  - A USB drive with at least 8 gigabytes of memory
+  - The ability to fault find and troubleshoot will come in very handy, as will a can-do attitude - **a DIY automotive noob IS capable of using this software**
 
   
 ## Instructions for use
