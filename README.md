@@ -22,7 +22,7 @@ The reprogramming happens in two stages, the first via the CANbus(yes the OBD po
   - A windows laptop with .NET 4.8.1 x86 installed.
   - An SAE <a hef="https://www.boschdiagnostics.com/j2534-faq">J2534 PassThru</a> Device with Ford MidSpeed CAN @ 125KBPS capability. <a href="https://obdxpro.com/product/obdx-pro-fx-ford-obd2-j2534-diagnostics-and-tuning/">Here</a>, and <a href="https://www.tiperformance.com.au/products/obdx-pro-ft-ford-j2534-diagnostic-and-tuning-cable/?srsltid=AU7gw4ViX67wHhJb-DVhP5L0pVIaLImWDDanHMrMYQyuglbJXWjkRlaI">here</a>  
   - A USB drive with at least 8 gigabytes of memory
-  - The ability to fault find and troubleshoot will come in very handy, as will a can-do attitude - **a DIY automotive noob IS capable of using this software**
+  - The ability to <a href="https://testerpresent.com.au/FaultFinding/Superpower.php">fault find</a> and troubleshoot will come in very handy, as will a can-do attitude - **a DIY automotive noob IS capable of using this software**
 
   
 ## Instructions for use
