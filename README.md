@@ -13,7 +13,8 @@ The reprogramming happens in two stages, the first via the CANbus(yes the OBD po
 
  ***We have a bench verified succesful OBD flash!***    
 <img width="852" height="778" alt="image" src="https://github.com/user-attachments/assets/ef161f27-faf3-4c71-ab3c-c5b73002f76a" />
-<img width="850" height="778" alt="image" src="https://github.com/user-attachments/assets/0958e55e-14ad-4e8d-8d4a-31c775880687" />
+<img width="852" height="776" alt="image" src="https://github.com/user-attachments/assets/ab5e54d3-f15f-492c-a840-600952e7fc76" />
+
 
 
   
