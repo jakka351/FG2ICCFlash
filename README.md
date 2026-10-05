@@ -2,27 +2,32 @@
 # FG2ICCFlash
 ### *This project is dedicated to Janis*  
 
-<img width="30%" height="30%" alt="351" src="https://github.com/user-attachments/assets/90f7a269-0958-4e4b-9c02-faf627f02efc" />
+<img width="55%" height="55%" alt="351" align="center" src="https://github.com/user-attachments/assets/90f7a269-0958-4e4b-9c02-faf627f02efc" />
 
   
 ## What this is
-This is full spec engineering tool for use with the Ford FGII Falcon's Front Display Interface Module, aka the ICC, the Interior Command Centre. It will perform diagnostics and reprogramming of the controller
-via the CANbus(yes the OBD port) using an SAE J2534 PassThru Device. The hope is that while currently these units are able to have the firmware updated via USB, providing an OBD option for people to try may
-help to extend the overall life that we get out of these units across the board. I am simply trying to increase the average longevity of these things. 
+This is a full spec engineering tool for use with the Ford FGII Falcon's Front Display Interface Module, aka the ICC, the Interior Command Centre. It replaces the Ford Dealership firmware and reprogramming system,
+which is done via the Ford IDS software, which is fucking broken for this procedure, and there is no chance in hell that Bosch Automotive Service Solutions(who are the actual maintainers Ford IDS) will ever touch this
+functionality ever again, so here is a fully open source and substantive solution for performing Module Programming and Configuration and Firmware Recore on the MK2 ICC. The reprogramming happens in two stages, the first
+via the CANbus(yes the OBD port) using an SAE J2534 PassThru Device, the second is via USB. The intent here is in the spirit of Right to Repair, and the project's mission is to help to extend the overall life that we get out of these units across the board. This project is aimed at the DIY folks at home, Independent Workshops and Ford Dealerships who need the functionality that they have lost to time back in a working state again. Also in addition the USB-Recore functionality
+is gamed out and a small linux scripting engine for developing custom payloads to recore, as well as community based firmware backups are selectable as a recore option, and navimaps.zip as well. Enjoy, hopefully this helps some 
+folks save a few units from the bin. 
 
+ ***We have a bench verified succesful OBD flash!***    
 <img width="854" height="746" alt="image" src="https://github.com/user-attachments/assets/aa896c8d-3e71-420d-9553-a9d23c901ce5" />
 
   
 ## Instructions for use
-***~~This software has not yet been tested on an FDIM~~ Live testing is currently underway!*** ***We have a bench verified succesful flash!***   
-Download the software from the releases page, and fire it up, plug in your J2534 device to USB and OBD, select it in the software, select your firmware and flash! Simples. The software may be 
-a bit daunting, but I have tried to keep it as closely aligned to the engineering specification as possible. **If you come across a problem or a fault or a bug, please raise an issue in the repo issues section.**  
+
+Download the software from the releases page, and fire it up, plug in your J2534 device to USB and OBD, select it in the software, select your firmware and flash! Stage 2 via USB is explained within the tool. 
+The software may be a bit daunting, but I have tried to keep it as user friendly as possible. **If you come across a problem or a fault or a bug, please raise an issue in the repo issues section.**  
   
-## Recore - Reimplemented 
-The USB Recore functionality has been implemented into this software as well, alongside both the On Demand Self Test and the EOL Assembly Self Test.  
+## Diagnostics
+Read and Clear DTC is available from the diagnostics tab, alongside both the On Demand Self Test and the EOL Assembly Self Test.  
 
 ## Firmware
 A collection of firmware files have been provided for use with the software in PHF, Binary and Hex format, use as you will. I believe the -CS firmware is the FPV spec firmware, with extra EEPROM space. 
+Community based recore backups will also be uploaded to the repository and be available from the tool.
 
 ## Brick risk  
 These Mark 2 FDIM's are extremely delicate and as such any use of this software may inexplicably brick the FDIM rendering it essentially useless. Use at your own risk, if you are
