@@ -23,14 +23,14 @@ The reprogramming happens in two stages, the first via the CANbus(yes the OBD po
 
 ## Requirements
   - A windows laptop with .NET 4.8.1 x86 installed.
-  - An SAE <a hef="https://www.boschdiagnostics.com/j2534-faq">J2534 PassThru</a> Device with Ford MidSpeed CAN @ 125KBPS capability. <a href="https://obdxpro.com/product/obdx-pro-fx-ford-obd2-j2534-diagnostics-and-tuning/">Here</a>, and <a href="https://www.tiperformance.com.au/products/obdx-pro-ft-ford-j2534-diagnostic-and-tuning-cable/?srsltid=AU7gw4ViX67wHhJb-DVhP5L0pVIaLImWDDanHMrMYQyuglbJXWjkRlaI">here</a>  
+  - An SAE <a href="https://www.boschdiagnostics.com/j2534-faq">J2534 PassThru</a> Device with Ford MidSpeed CAN @ 125KBPS capability. <a href="https://obdxpro.com/product/obdx-pro-fx-ford-obd2-j2534-diagnostics-and-tuning/">Here</a>, and <a href="https://www.tiperformance.com.au/products/obdx-pro-ft-ford-j2534-diagnostic-and-tuning-cable/?srsltid=AU7gw4ViX67wHhJb-DVhP5L0pVIaLImWDDanHMrMYQyuglbJXWjkRlaI">here</a>  
   - A USB drive with at least 8 gigabytes of memory
   - The ability to <a href="https://testerpresent.com.au/FaultFinding/Superpower.php">fault find</a> and troubleshoot will come in very handy, as will a can-do attitude - **a DIY automotive noob IS capable of using this software**
 
   
 ## Instructions for use
 
-Download the software from the releases page, and fire it up, plug in your J2534 device to USB and OBD, select it in the software, select your firmware and flash! Stage 2 via USB is explained within the tool. 
+Download the software from the <a href="https://github.com/jakka351/FG2ICCFlash/releases/tag/Live-Fire">releases</a> page, and fire it up, plug in your J2534 device to USB and OBD, select it in the software, select your firmware and flash! Stage 2 via USB is explained within the tool. 
 The software may be a bit daunting, but I have tried to keep it as user friendly as possible. **If you come across a problem or a fault or a bug, please raise an issue in the repo issues section.**  
 <img width="75%" height="75%" alt="image" src="https://github.com/user-attachments/assets/c8c3a6d1-c3da-4551-a0a5-d2ef22e83c11" />
 
