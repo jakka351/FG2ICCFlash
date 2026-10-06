@@ -13,6 +13,8 @@ functionality ever again, so here is a ***fully open source and substantive solu
 ## Who it's for
 The reprogramming happens in two stages, the first via the CANbus(yes the OBD port) using an SAE J2534 PassThru Device, the second is via USB. The intent here is in the spirit of Right to Repair, and the project's mission is to help to extend the overall life that we get out of these units across the board. This project is aimed at the **DIY folks at home, Independent Workshops and Ford Dealerships** who need the functionality that they have lost to time back in a working state again. Also in addition the USB-Recore functionality is built out and a small linux scripting engine for developing custom payloads to recore, as well as community based firmware backups are selectable as a recore option, and navimaps.zip as well. Enjoy, hopefully this helps some folks save a few units from the bin. 
 
+## Where it's at
+
  ***We have a bench verified succesful OBD flash!***    
 <img width="75%" height="75%" alt="image" src="https://github.com/user-attachments/assets/ef161f27-faf3-4c71-ab3c-c5b73002f76a" />
   
