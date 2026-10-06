@@ -1,7 +1,6 @@
 <a href="https://testerpresent.com.au"><img width="24%" height="24%" align="right" alt="RightToRepair" src="https://github.com/user-attachments/assets/b41c7c2a-f293-45aa-97d7-bebcd65e9433" /></a>
 # FG2ICCFlash
 
-<img width="55%" height="55%" alt="351" align="center" src="https://github.com/user-attachments/assets/90f7a269-0958-4e4b-9c02-faf627f02efc" />
 
 <br/>
 
@@ -11,6 +10,9 @@
 This is a full spec engineering tool for use with the Ford MkII <a href="https://github.com/jakka351/FG-Falcon">FG Falcon</a>'s Front Display Interface Module, aka the ICC, the Interior Command Centre. It **replaces the Ford Dealership firmware reprogramming system**,
 which is done via the Ford IDS software, which is broken for this procedure, and there is no chance in hell that Bosch Automotive Service Solutions(who are the actual maintainers of Ford IDS) will ever touch this
 functionality ever again, so here is a ***fully open source and substantive solution*** for performing Module Programming and Configuration and Firmware Recore on the MK2 ICC.   
+
+<img width="55%" height="55%" alt="351" align="center" src="https://github.com/user-attachments/assets/90f7a269-0958-4e4b-9c02-faf627f02efc" />
+
   
 The reprogramming happens in two stages, the first via the CANbus(yes the OBD port) using an SAE J2534 PassThru Device, the second is via USB. The intent here is in the spirit of Right to Repair, and the project's mission is to help to extend the overall life that we get out of these units across the board. This project is aimed at the **DIY folks at home, Independent Workshops and Ford Dealerships** who need the functionality that they have lost to time back in a working state again. Also in addition the USB-Recore functionality is built out and a small linux scripting engine for developing custom payloads to recore, as well as community based firmware backups are selectable as a recore option, and navimaps.zip as well. Enjoy, hopefully this helps some folks save a few units from the bin. 
 
