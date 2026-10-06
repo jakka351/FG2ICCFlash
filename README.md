@@ -8,7 +8,7 @@
 <img width="15%" height="15%" alt="aus" align="right" src="https://github.com/user-attachments/assets/157d6280-f6bf-4c5e-9a6a-32721e624b77" />
 
 ## What this is
-This is a full spec engineering tool for use with the Ford MkII <a href="https://www.drive.com.au/news/ford-fg-falcon-new-names-new-models-20080216-1438u/">FG Falcon</a>'s Front Display Interface Module, aka the ICC, the Interior Command Centre. It **replaces the Ford Dealership firmware reprogramming system**,
+This is a full spec engineering tool for use with the Ford MkII <a href="https://github.com/jakka351/FG-Falcon">FG Falcon</a>'s Front Display Interface Module, aka the ICC, the Interior Command Centre. It **replaces the Ford Dealership firmware reprogramming system**,
 which is done via the Ford IDS software, which is broken for this procedure, and there is no chance in hell that Bosch Automotive Service Solutions(who are the actual maintainers of Ford IDS) will ever touch this
 functionality ever again, so here is a ***fully open source and substantive solution*** for performing Module Programming and Configuration and Firmware Recore on the MK2 ICC.   
   
