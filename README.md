@@ -1,6 +1,6 @@
 <a href="https://testerpresent.com.au"><img width="24%" height="24%" align="right" alt="RightToRepair" src="https://github.com/user-attachments/assets/b41c7c2a-f293-45aa-97d7-bebcd65e9433" /></a>
 # FG2ICCFlash
-
+***Currently working through a 0x72 General Programming Failure on flash write attempt***   
 <img width="15%" height="15%" alt="aus" align="right" src="https://github.com/user-attachments/assets/157d6280-f6bf-4c5e-9a6a-32721e624b77" />
 
 ## What this is
