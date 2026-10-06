@@ -60,7 +60,7 @@ Professional Automotive Technical Support is available from Tester Present. **Ho
 Failing ICC Thread: https://fordforums.com.au/showthread.php?t=11479908&page=2   
 
 ## Thanks
-**JasonACT** for the extensive documentation and development effort put in over a long period of time.   
+**JasonACT** for the extensive documentation and development effort put in over a long period of time. Most of this project is based on his work.  
   
 
 <img width="20%" height="20%" alt="Get your anonsies" align="right" src="https://github.com/user-attachments/assets/084977ea-9fcb-4995-8fde-ceaa79152bd0" />
