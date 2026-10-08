@@ -1,7 +1,9 @@
 <a href="https://testerpresent.com.au"><img width="24%" height="24%" align="right" alt="RightToRepair" src="https://github.com/user-attachments/assets/b41c7c2a-f293-45aa-97d7-bebcd65e9433" /></a>
 # FG2ICCFlash
 ***This software is published freely in the spirit of Right to Repair***   
-<img width="15%" height="15%" alt="aus" align="right" src="https://github.com/user-attachments/assets/157d6280-f6bf-4c5e-9a6a-32721e624b77" />
+
+<img width="35%" height="35%" alt="image" src="https://github.com/user-attachments/assets/4ec02cac-3cc2-4aff-8d72-ce95ba946201" />
+
 
 ## What this is
 This is a full spec engineering tool for use with the Ford MkII <a href="https://github.com/jakka351/FG-Falcon">FG Falcon</a>'s Front Display Interface Module, aka the ICC, the Interior Command Centre. It **replaces the Ford Dealership firmware reprogramming system**,
