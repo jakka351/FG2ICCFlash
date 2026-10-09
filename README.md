@@ -48,6 +48,13 @@ also load and save .ABT As Built files in the forscan format.
 A collection of firmware files have been provided for use with the software in PHF, Binary and Hex format, use as you will. I believe the -CS firmware is the FPV spec firmware, with extra EEPROM space. 
 Official Firmware, Updates and Community pulled recore backups are available for download from within the Stage 2 tab of the tool, and are hosted at https://www.testerpresent.com.au/FDIM/
 
+## AR79-14D017-JL.phf Patched Firmware
+***For installs where MK2 FDIM going into MK1, this patched firmware provides CANbus compatibility***   
+There are three modifications to this firmware from the original   
+  - Dimming from `0x128` is inverted to match the MK1 CANbus  
+  - Ambient Temperature grabbed from `0x353` is now rebroadcast on `0x313` `Byte 0`
+  - HVAC Buttons on `0x307` are now aligned with what the MK1 expects
+
 ## Brick risk  
 These Mark 2 FDIM's are extremely delicate and as such any use of this software may inexplicably brick the FDIM rendering it essentially useless. Use at your own risk, if you are
 unsure, contract the services of a suitably qualified <a href="https://barrascan.net/">Module Programmer</a> to program the module. 
