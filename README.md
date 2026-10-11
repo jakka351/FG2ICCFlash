@@ -1,4 +1,4 @@
-<a href="https://testerpresent.com.au"><img width="24%" height="24%" align="right" alt="RightToRepair" src="https://github.com/user-attachments/assets/b41c7c2a-f293-45aa-97d7-bebcd65e9433" /></a>
+<a href="https://tester.engineering"><img width="24%" height="24%" align="right" alt="RightToRepair" src="https://github.com/user-attachments/assets/b41c7c2a-f293-45aa-97d7-bebcd65e9433" /></a>
 # FG2ICCFlash
 ***This software is published freely in the spirit of Right to Repair. See the <a href="https://github.com/jakka351/FG2ICCFlash/wiki">wiki</a> for educational material.***   
 
@@ -28,7 +28,7 @@ The reprogramming happens in two stages, the first via the CANbus(yes the OBD po
   - A windows laptop with .NET 4.8.1 x86 installed.
   - An SAE <a href="https://www.boschdiagnostics.com/j2534-faq">J2534 PassThru</a> Device with Ford MidSpeed CAN @ 125KBPS capability. <a href="https://obdxpro.com/product/obdx-pro-fx-ford-obd2-j2534-diagnostics-and-tuning/">Here</a>, and <a href="https://www.tiperformance.com.au/products/obdx-pro-ft-ford-j2534-diagnostic-and-tuning-cable/?srsltid=AU7gw4ViX67wHhJb-DVhP5L0pVIaLImWDDanHMrMYQyuglbJXWjkRlaI">here</a>  
   - A USB drive with at least 8 gigabytes of memory
-  - The ability to <a href="https://testerpresent.com.au/FaultFinding/Superpower.php">fault find</a> and troubleshoot will come in very handy, as will a can-do attitude - **a DIY automotive noob IS capable of using this software**
+  - The ability to <a href="https://github.com/jakka351/FG2ICCFlash/wiki/Fault-Finding-&-Troubleshooting">fault find and troubleshoot</a> will come in very handy, as will a can-do attitude - **a DIY automotive noob IS capable of using this software**
 
   
 ## Instructions for use
