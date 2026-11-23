@@ -1,8 +1,6 @@
 <a href="https://tester.engineering"><img width="24%" height="24%" align="right" alt="RightToRepair" src="https://github.com/user-attachments/assets/b41c7c2a-f293-45aa-97d7-bebcd65e9433" /></a>
 # FG2ICCFlash
-***This software is published freely in the spirit of Right to Repair. See the <a href="https://github.com/jakka351/FG2ICCFlash/wiki">wiki</a> for educational material.***   
-
-
+***The only reason this repository is still public is for members of Ford Forums AU, I have put in enough work and effort for the Falcon community to last a lifetime, the disrespect, the mocking, the shittalking, the lying and two-faced behaviours of a small minority of the larger community are why I no longer will commit my life, time, energy effort and money to publishing and developing openly for everyone's benefit. I put this out there for everyone to use and my trust and faith in having an open community has been obliterated by gossiping children and I don't see it fitting to continue serving a community that frequently ***mocks and belittles and disrespects me both to my face and behind my back***. So the actions of few have consequences for the many. Do not contact me expecting help or free information or assistance on anything, ever. I have a small business that makes no money because of me having done the aforementioned work for free on here - if you want my assistance you can ask for my professional services and you can adequately compensate me for my insanedly qualified automotive capabilities and my software development capabilities. I have nothing more to say. See the <a href="https://github.com/jakka351/FG2ICCFlash/wiki">wiki</a> for educational material.***   
 
 
 ## What this is
