@@ -59,7 +59,7 @@ unsure, contract the services of a suitably qualified <a href="https://barrascan
 <a href="https://www.sws.co.jp/en/corporation/outline/office/detail/sws_australia_pty_ltdsws-a.html">You can thank SWSA for that.</a> **Do not contact me if you bricked your FDIM using this, I don't care. Your problem, not mine** 
 
 ## If you broke something...  
-Professional Automotive Technical Support is available from Tester Present. Assistance is available and is priced at $150 per hour for diagnostics and fault-finging, I am a qualfied tradesman
+Professional Automotive Technical Support is available from Tester Present. Assistance is available and is priced at $150 per hour for diagnostics and fault-finding, I am a qualfied tradesman
 who has been professionally trained in these areas so my skills require compensation, any requests for free assistance, advice, tips & pointers or information will be met with the same level of the respect that the person asking
 is showing by expecting free engineering grade service. **You will be told in no uncertain terms to fuck off.**
 
