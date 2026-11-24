@@ -56,7 +56,7 @@ There are three modifications to this firmware from the original
 ## Brick risk  
 These Mark 2 FDIM's are extremely delicate and as such any use of this software may inexplicably brick the FDIM rendering it essentially useless. Use at your own risk, if you are
 unsure, contract the services of a suitably qualified <a href="https://barrascan.net/">Module Programmer</a> to program the module. 
-<a href="https://www.sws.co.jp/en/corporation/outline/office/detail/sws_australia_pty_ltdsws-a.html">You can thank SWSA for that.</a> **Do not contact me if you bricked your FDIM using this, I don't care, its on you*** 
+<a href="https://www.sws.co.jp/en/corporation/outline/office/detail/sws_australia_pty_ltdsws-a.html">You can thank SWSA for that.</a> **Do not contact me if you bricked your FDIM using this, I don't care. Your problem, not mine** 
 
 ## If you broke something...  
 Professional Automotive Technical Support is available from Tester Present. Assistance is available and is priced at $150 per hour for diagnostics and fault-finging, I am a qualfied tradesman
